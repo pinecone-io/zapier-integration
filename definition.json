@@ -1,0 +1,321 @@
+{
+  "version": "1.0.1",
+  "platformVersion": "17.2.0",
+  "authentication": {
+    "type": "custom",
+    "test": "$func$1$f$",
+    "fields": [
+      {
+        "computed": false,
+        "key": "api_key",
+        "required": true,
+        "label": "API Key",
+        "type": "password",
+        "helpText": "Get your API key from the [Pinecone console](https://app.pinecone.io/) under API Keys."
+      }
+    ]
+  },
+  "beforeRequest": [
+    "$func$3$f$"
+  ],
+  "requestTemplate": {
+    "headers": {
+      "Api-Key": "{{ bundle.authData.api_key }}",
+      "Content-Type": "application/json"
+    }
+  },
+  "triggers": {
+    "list_indexes": {
+      "key": "list_indexes",
+      "noun": "Index",
+      "display": {
+        "label": "New Index",
+        "description": "Triggers when a new index is created."
+      },
+      "operation": {
+        "perform": "$func$1$f$",
+        "sample": {
+          "id": "123",
+          "name": "example-index",
+          "metric": "cosine",
+          "dimension": 1536,
+          "status": {
+            "ready": true,
+            "state": "Ready"
+          },
+          "host": "example-index-abc123.svc.us-east-1-aws.pinecone.io",
+          "spec": {
+            "serverless": {
+              "region": "us-east-1",
+              "cloud": "aws"
+            }
+          }
+        },
+        "outputFields": [
+          {
+            "key": "id",
+            "label": "ID",
+            "type": "string",
+            "primary": true
+          },
+          {
+            "key": "name",
+            "label": "Name",
+            "type": "string"
+          },
+          {
+            "key": "metric",
+            "label": "Metric",
+            "type": "string"
+          },
+          {
+            "key": "dimension",
+            "label": "Dimension",
+            "type": "integer"
+          },
+          {
+            "key": "status__ready",
+            "label": "Ready",
+            "type": "boolean"
+          },
+          {
+            "key": "status__state",
+            "label": "State",
+            "type": "string"
+          },
+          {
+            "key": "host",
+            "label": "Host",
+            "type": "string"
+          },
+          {
+            "key": "spec__serverless__region",
+            "label": "Region",
+            "type": "string"
+          },
+          {
+            "key": "spec__serverless__cloud",
+            "label": "Cloud",
+            "type": "string"
+          },
+          {
+            "key": "deletion_protection",
+            "label": "Deletion Protection",
+            "type": "string"
+          },
+          {
+            "key": "vector_type",
+            "label": "Vector Type",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  },
+  "creates": {
+    "create_index": {
+      "key": "create_index",
+      "noun": "Index",
+      "display": {
+        "label": "Create Index",
+        "description": "Creates a new Pinecone index with specified configuration."
+      },
+      "operation": {
+        "perform": "$func$2$f$",
+        "inputFields": [
+          {
+            "key": "name",
+            "label": "Index Name",
+            "type": "string",
+            "helpText": "The name of the index. Must be **unique** within your project.",
+            "required": true
+          },
+          {
+            "key": "dimension",
+            "label": "Dimension",
+            "type": "integer",
+            "helpText": "The dimension of vectors to be stored in the index. Must be **between 1 and 20000**.",
+            "required": true
+          },
+          {
+            "key": "metric",
+            "label": "Metric",
+            "type": "string",
+            "helpText": "The distance metric used to calculate similarity between vectors.",
+            "required": true,
+            "choices": [
+              "cosine",
+              "euclidean",
+              "dotproduct"
+            ]
+          },
+          {
+            "key": "spec_type",
+            "label": "Spec Type",
+            "type": "string",
+            "helpText": "The type of index configuration.",
+            "required": true,
+            "choices": [
+              "serverless",
+              "pod",
+              "byoc"
+            ]
+          },
+          {
+            "key": "cloud",
+            "label": "Cloud Provider",
+            "type": "string",
+            "helpText": "The cloud provider for serverless indexes.",
+            "required": false,
+            "choices": [
+              "aws",
+              "gcp",
+              "azure"
+            ]
+          },
+          {
+            "key": "region",
+            "label": "Region",
+            "type": "string",
+            "helpText": "The region for serverless indexes (e.g., us-east-1).",
+            "required": false
+          },
+          {
+            "key": "environment",
+            "label": "Environment",
+            "type": "string",
+            "helpText": "The environment for pod-based or BYOC indexes.",
+            "required": false
+          },
+          {
+            "key": "pod_type",
+            "label": "Pod Type",
+            "type": "string",
+            "helpText": "The type of pod for pod-based indexes (e.g., p1.x1).",
+            "required": false
+          },
+          {
+            "key": "pods",
+            "label": "Number of Pods",
+            "type": "integer",
+            "helpText": "The number of pods for pod-based indexes.",
+            "required": false
+          },
+          {
+            "key": "replicas",
+            "label": "Number of Replicas",
+            "type": "integer",
+            "helpText": "The number of replicas for pod-based indexes.",
+            "required": false
+          },
+          {
+            "key": "shards",
+            "label": "Number of Shards",
+            "type": "integer",
+            "helpText": "The number of shards for pod-based indexes.",
+            "required": false
+          },
+          {
+            "key": "deletion_protection",
+            "label": "Deletion Protection",
+            "type": "string",
+            "helpText": "Whether to enable deletion protection for the index.",
+            "required": false,
+            "choices": [
+              "enabled",
+              "disabled"
+            ]
+          },
+          {
+            "key": "tags",
+            "label": "Tags",
+            "type": "text",
+            "helpText": "Tags as JSON object (e.g., {\"environment\": \"dev\", \"team\": \"ai\"}).",
+            "required": false
+          }
+        ],
+        "outputFields": [
+          {
+            "key": "name",
+            "label": "Name",
+            "type": "string",
+            "primary": true
+          },
+          {
+            "key": "metric",
+            "label": "Metric",
+            "type": "string"
+          },
+          {
+            "key": "dimension",
+            "label": "Dimension",
+            "type": "integer"
+          },
+          {
+            "key": "vector_type",
+            "label": "Vector Type",
+            "type": "string"
+          },
+          {
+            "key": "status",
+            "label": "Status",
+            "dict": true
+          },
+          {
+            "key": "status__ready",
+            "label": "Ready",
+            "type": "boolean"
+          },
+          {
+            "key": "status__state",
+            "label": "State",
+            "type": "string"
+          },
+          {
+            "key": "host",
+            "label": "Host",
+            "type": "string"
+          },
+          {
+            "key": "spec",
+            "label": "Spec",
+            "dict": true
+          },
+          {
+            "key": "deletion_protection",
+            "label": "Deletion Protection",
+            "type": "string"
+          },
+          {
+            "key": "tags",
+            "label": "Tags",
+            "dict": true
+          }
+        ],
+        "sample": {
+          "name": "example-index",
+          "metric": "cosine",
+          "dimension": 1536,
+          "vector_type": "dense",
+          "status": {
+            "ready": true,
+            "state": "Ready"
+          },
+          "host": "example-index-abc123.svc.us-east-1-aws.pinecone.io",
+          "spec": {
+            "serverless": {
+              "cloud": "aws",
+              "region": "us-east-1"
+            }
+          },
+          "deletion_protection": "disabled",
+          "tags": {
+            "environment": "production"
+          }
+        }
+      }
+    }
+  },
+  "searches": {},
+  "searchOrCreates": {}
+}
