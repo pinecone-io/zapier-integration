@@ -1,3 +1,6 @@
 {
-  "extends": ["../tsconfig.ts.json"]
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  }
 }
