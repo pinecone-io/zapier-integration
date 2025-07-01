@@ -6,7 +6,7 @@ import App from '../../index';
 
 const appTester = zapier.createAppTester(App);
 
-describe('triggers.describe_index', () => {
+describe('searches.describe_index', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -44,7 +44,7 @@ describe('triggers.describe_index', () => {
       const describeIndexMock = vi.fn().mockResolvedValue(describeIndexResponse);
       vi.spyOn(Pinecone.prototype, 'describeIndex').mockImplementation(describeIndexMock);
 
-      const result = await appTester((App.triggers.describe_index!.operation.perform as any), bundle);
+      const result = await appTester((App.searches.describe_index!.operation.perform as any), bundle);
 
       expect(describeIndexMock).toHaveBeenCalledWith('test-index');
       expect(result).toEqual([describeIndexResponse]);

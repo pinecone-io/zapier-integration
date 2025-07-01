@@ -1,13 +1,24 @@
 import { type Bundle, type ZObject, type Trigger } from 'zapier-platform-core';
 import { Pinecone } from '@pinecone-database/pinecone';
 
+const toSnakeCase = (obj: any): any => {
+  if (Array.isArray(obj)) return obj.map(toSnakeCase);
+  if (obj && typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj).map(([k, v]) => [
+        k.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`),
+        toSnakeCase(v)
+      ])
+    );
+  }
+  return obj;
+};
+
 const perform = async (z: ZObject, bundle: Bundle) => {
-  const pinecone = new Pinecone({
-    apiKey: bundle.authData.api_key,
-  });
+  const pinecone = new Pinecone();
   const response = await pinecone.listIndexes();
-  // Return the array of indexes directly
-  return response.indexes;
+  // Convert each index to snake_case keys
+  return response.indexes.map(toSnakeCase);
 };
 
 export default {

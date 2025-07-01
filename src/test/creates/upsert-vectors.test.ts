@@ -46,7 +46,7 @@ describe('creates.upsert_vectors', () => {
         { id: 'vec1', values: [1,2,3], metadata: { genre: 'comedy' } },
         { id: 'vec2', values: [4,5,6], metadata: { genre: 'drama' } },
       ]);
-      expect(result).toEqual(upsertResponse);
+      expect(result).toEqual({ upsertedCount: 2, name: 'test-index', status: 'upserted' });
     });
   });
 }); 

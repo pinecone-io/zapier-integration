@@ -40,7 +40,7 @@ describe('triggers.describe_index_stats', () => {
       const indexMock = vi.fn().mockReturnValue({ describeIndexStats: describeIndexStatsMock });
       vi.spyOn(Pinecone.prototype, 'index').mockImplementation(indexMock as any);
 
-      const result = await appTester((App.triggers.describe_index_stats!.operation.perform as any), bundle);
+      const result = await appTester((App.searches.describe_index_stats!.operation.perform as any), bundle);
 
       expect(indexMock).toHaveBeenCalledWith('test-index', 'test-host');
       expect(describeIndexStatsMock).toHaveBeenCalledWith();

@@ -30,22 +30,38 @@ describe('triggers.index_status_change', () => {
         },
       } satisfies Bundle;
 
-      const describeIndexResponse = {
-        name: 'test-index',
-        status: { ready: true, state: 'Ready' },
+      const listIndexesResponse = {
+        indexes: [
+          {
+            name: 'test-index',
+            metric: 'cosine',
+            dimension: 1536,
+            status: { ready: true, state: 'Ready' },
+            host: 'test-index-host',
+            spec: { serverless: { region: 'us-east-1', cloud: 'aws' } },
+            deletion_protection: 'disabled',
+            tags: { environment: 'dev' },
+            vector_type: 'dense',
+          },
+        ],
       };
-      const describeIndexMock = vi.fn().mockResolvedValue(describeIndexResponse);
-      const indexMock = vi.fn().mockReturnValue({ describeIndex: describeIndexMock });
-      vi.spyOn(Pinecone.prototype, 'index').mockImplementation(indexMock as any);
+      const listIndexesMock = vi.fn().mockResolvedValue(listIndexesResponse);
+      vi.spyOn(Pinecone.prototype, 'listIndexes').mockImplementation(listIndexesMock);
 
       const result = await appTester((App.triggers.index_status_change!.operation.perform as any), bundle);
 
-      expect(indexMock).toHaveBeenCalledWith('test-index', 'test-host');
-      expect(describeIndexMock).toHaveBeenCalledWith();
-      expect(result).toEqual([{
+      expect(listIndexesMock).toHaveBeenCalledWith();
+      expect(result[0]).toMatchObject({
         name: 'test-index',
-        status: 'ready',
-      }]);
+        status: { ready: true, state: 'Ready' },
+        host: 'test-index-host',
+        spec: { serverless: { region: 'us-east-1', cloud: 'aws' } },
+        deletion_protection: 'disabled',
+        tags: { environment: 'dev' },
+        vector_type: 'dense',
+      });
+      expect(result[0]).toHaveProperty('id');
+      expect(result[0]).toHaveProperty('status_changed_at');
     });
   });
 });

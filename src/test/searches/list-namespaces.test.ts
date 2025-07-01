@@ -31,7 +31,7 @@ describe('searches.list_namespaces', () => {
       } satisfies Bundle;
 
       const namespacesResponse = ['ns1', 'ns2', 'ns3'];
-      const listNamespacesMock = vi.fn().mockResolvedValue(namespacesResponse);
+      const listNamespacesMock = vi.fn().mockResolvedValue({ namespaces: namespacesResponse });
       const indexMock = vi.fn().mockReturnValue({ listNamespaces: listNamespacesMock });
       vi.spyOn(Pinecone.prototype, 'index').mockImplementation(indexMock as any);
 

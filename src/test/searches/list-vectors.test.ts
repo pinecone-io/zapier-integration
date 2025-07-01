@@ -35,8 +35,8 @@ describe('searches.list_vectors', () => {
         { id: 'vec1', values: [1,2,3], metadata: { genre: 'comedy' } },
         { id: 'vec2', values: [4,5,6], metadata: { genre: 'drama' } },
       ];
-      const listMock = vi.fn().mockResolvedValue(vectorsResponse);
-      const namespaceMock = vi.fn().mockReturnValue({ list: listMock });
+      const listPaginatedMock = vi.fn().mockResolvedValue(vectorsResponse);
+      const namespaceMock = vi.fn().mockReturnValue({ listPaginated: listPaginatedMock });
       const indexMock = vi.fn().mockReturnValue({ namespace: namespaceMock });
       vi.spyOn(Pinecone.prototype, 'index').mockImplementation(indexMock as any);
 
@@ -44,8 +44,8 @@ describe('searches.list_vectors', () => {
 
       expect(indexMock).toHaveBeenCalledWith('test-index', 'test-host');
       expect(namespaceMock).toHaveBeenCalledWith('test-ns');
-      expect(listMock).toHaveBeenCalledWith();
-      expect(result).toEqual(vectorsResponse);
+      expect(listPaginatedMock).toHaveBeenCalledWith({});
+      expect(result).toEqual([vectorsResponse]);
     });
   });
 }); 

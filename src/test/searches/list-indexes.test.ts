@@ -8,7 +8,7 @@ import App from '../../index';
 
 const appTester = zapier.createAppTester(App);
 
-describe('triggers.list_indexes', () => {
+describe('searches.list_indexes', () => {
   beforeEach(() => {
     nock.cleanAll();
   });
@@ -71,14 +71,11 @@ describe('triggers.list_indexes', () => {
         ],
       };
 
-      const expectedResults = mockResponse.indexes.map((index) => ({
-        ...index,
-        id: index.name, // The trigger adds an id field based on the name
-      }));
+      const expectedResults = mockResponse.indexes;
 
       nock(API_URL).get('/indexes').reply(200, mockResponse);
 
-      const results = await appTester(App.triggers.list_indexes!.operation.perform, bundle);
+      const results = await appTester((App.searches.list_indexes!.operation.perform as any), bundle);
 
       expect(results).toEqual(expectedResults);
       expect(results).toHaveLength(2);
@@ -94,7 +91,7 @@ describe('triggers.list_indexes', () => {
 
       nock(API_URL).get('/indexes').reply(200, mockResponse);
 
-      const results = await appTester(App.triggers.list_indexes!.operation.perform, bundle);
+      const results = await appTester((App.searches.list_indexes!.operation.perform as any), bundle);
 
       expect(results).toEqual([]);
       expect(results).toHaveLength(0);
@@ -112,7 +109,7 @@ describe('triggers.list_indexes', () => {
         });
 
       await expect(
-        appTester(App.triggers.list_indexes!.operation.perform, bundle),
+        appTester((App.searches.list_indexes!.operation.perform as any), bundle),
       ).rejects.toThrow();
       expect(nock.isDone()).toBe(true);
     });

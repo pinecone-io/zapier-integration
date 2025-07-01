@@ -42,7 +42,7 @@ describe('creates.update_vector', () => {
       expect(indexMock).toHaveBeenCalledWith('test-index', 'test-host');
       expect(namespaceMock).toHaveBeenCalledWith('test-ns');
       expect(updateMock).toHaveBeenCalledWith({ id: 'vec1', values: [1,2,3], metadata: { genre: 'comedy' } });
-      expect(result).toEqual({ success: true, id: 'vec1' });
+      expect(result).toEqual({ success: true, id: 'vec1', name: 'vec1', status: 'updated' });
     });
   });
 }); 

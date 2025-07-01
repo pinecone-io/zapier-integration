@@ -43,7 +43,7 @@ describe('creates.delete_vectors', () => {
       expect(indexMock).toHaveBeenCalledWith('test-index', 'test-host');
       expect(namespaceMock).toHaveBeenCalledWith('test-ns');
       expect(deleteManyMock).toHaveBeenCalledWith(['id-1', 'id-2']);
-      expect(result).toEqual({ success: true, ids: ['id-1', 'id-2'] });
+      expect(result).toEqual({ success: true, ids: ['id-1', 'id-2'], name: 'test-index', status: 'deleted' });
     });
 
     it('should delete a single vector with deleteOne', async () => {
@@ -68,7 +68,7 @@ describe('creates.delete_vectors', () => {
       expect(indexMock).toHaveBeenCalledWith('test-index', 'test-host');
       expect(namespaceMock).toHaveBeenCalledWith('test-ns');
       expect(deleteOneMock).toHaveBeenCalledWith('id-3');
-      expect(result).toEqual({ success: true, ids: ['id-3'] });
+      expect(result).toEqual({ success: true, ids: ['id-3'], name: 'test-index', status: 'deleted' });
     });
   });
 }); 

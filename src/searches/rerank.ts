@@ -3,16 +3,14 @@ import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const { model, query, documents, topN, returnDocuments, parameters } = bundle.inputData;
-  const pinecone = new Pinecone({
-    apiKey: bundle.authData.api_key,
-  });
+  const pinecone = new Pinecone();
   const parsedDocuments = typeof documents === 'string' ? JSON.parse(documents) : documents;
   const parsedParameters = parameters && typeof parameters === 'string' ? JSON.parse(parameters) : parameters;
   const rerankOptions: Record<string, any> = {};
   if (topN) rerankOptions.topN = Number(topN);
   if (typeof returnDocuments !== 'undefined') rerankOptions.returnDocuments = returnDocuments === true || returnDocuments === 'true';
   if (parsedParameters) rerankOptions.parameters = parsedParameters;
-  const response = await pinecone.inference.rerank(
+  const response = await (pinecone.inference as any).rerank(
     model as string,
     query as string,
     parsedDocuments,

@@ -2,7 +2,10 @@ import { describe, expect, it, beforeEach, vi } from 'vitest';
 import zapier from 'zapier-platform-core';
 import type { Bundle } from 'zapier-platform-core';
 import { Pinecone } from '@pinecone-database/pinecone';
+import { __setPineconeMockState } from '../../../__mocks__/@pinecone-database/pinecone';
 import App from '../../index';
+
+vi.mock('@pinecone-database/pinecone');
 
 const appTester = zapier.createAppTester(App);
 
@@ -38,15 +41,19 @@ describe('searches.rerank', () => {
         ],
       };
       const rerankMock = vi.fn().mockResolvedValue(rerankResponse);
-      const realInference = Object.getOwnPropertyDescriptor(Pinecone.prototype, 'inference')?.get?.call({});
-      vi.spyOn(Pinecone.prototype, 'inference', 'get').mockReturnValue({ ...realInference, rerank: rerankMock });
+      __setPineconeMockState({
+        inference: { embed: vi.fn(), getModel: vi.fn(), listModels: vi.fn(), rerank: rerankMock },
+        describeIndex: vi.fn(),
+        listIndexes: vi.fn(),
+        index: vi.fn(),
+      });
 
       const result = await appTester((App.searches.rerank!.operation.perform as any), bundle);
 
       expect(rerankMock).toHaveBeenCalledWith('bge-reranker-v2-m3', 'What is Zapier?', [
         'Zapier is an automation tool.',
         'Pinecone is a vector database.',
-      ]);
+      ], expect.objectContaining({}));
       expect(result).toEqual([rerankResponse]);
     });
   });

@@ -3,15 +3,17 @@ import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const { model, texts, inputType, truncate } = bundle.inputData;
-  const pinecone = new Pinecone({
-    apiKey: bundle.authData.api_key,
-  });
+  const pinecone = new Pinecone();
   const parsedTexts = typeof texts === 'string' ? JSON.parse(texts) : texts;
   const options: Record<string, any> = {};
   if (inputType) options.inputType = inputType;
   if (truncate) options.truncate = truncate;
   const response = await pinecone.inference.embed(model as string, parsedTexts, options);
-  return { ...response, name: model, status: 'completed' };
+  return {
+    model,
+    data: response.data,
+    usage: response.usage,
+  };
 };
 
 export default {

@@ -2,11 +2,14 @@ import { describe, expect, it, beforeEach, vi } from 'vitest';
 import zapier from 'zapier-platform-core';
 import type { Bundle } from 'zapier-platform-core';
 import { Pinecone } from '@pinecone-database/pinecone';
+import { __setPineconeMockState } from '../../../__mocks__/@pinecone-database/pinecone';
 import App from '../../index';
+
+vi.mock('@pinecone-database/pinecone');
 
 const appTester = zapier.createAppTester(App);
 
-describe('triggers.describe_model', () => {
+describe('searches.describe_model', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -47,10 +50,14 @@ describe('triggers.describe_model', () => {
         ],
       };
       const getModelMock = vi.fn().mockResolvedValue(describeModelResponse);
-      const realInference = Object.getOwnPropertyDescriptor(Pinecone.prototype, 'inference')?.get?.call({});
-      vi.spyOn(Pinecone.prototype, 'inference', 'get').mockReturnValue({ ...realInference, getModel: getModelMock });
+      __setPineconeMockState({
+        inference: { embed: vi.fn(), getModel: getModelMock },
+        describeIndex: vi.fn(),
+        listIndexes: vi.fn(),
+        index: vi.fn(),
+      });
 
-      const result = await appTester((App.triggers.describe_model!.operation.perform as any), bundle);
+      const result = await appTester((App.searches.describe_model!.operation.perform as any), bundle);
 
       expect(getModelMock).toHaveBeenCalledWith('llama-text-embed-v2');
       expect(result).toEqual([describeModelResponse]);

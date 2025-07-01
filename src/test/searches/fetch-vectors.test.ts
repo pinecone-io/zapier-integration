@@ -6,7 +6,7 @@ import App from '../../index';
 
 const appTester = zapier.createAppTester(App);
 
-describe('triggers.fetch_vectors', () => {
+describe('searches.fetch_vectors', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -43,12 +43,17 @@ describe('triggers.fetch_vectors', () => {
       const indexMock = vi.fn().mockReturnValue({ namespace: namespaceMock });
       vi.spyOn(Pinecone.prototype, 'index').mockImplementation(indexMock as any);
 
-      const result = await appTester((App.triggers.fetch_vectors!.operation.perform as any), bundle);
+      const result = await appTester((App.searches.fetch_vectors!.operation.perform as any), bundle);
 
       expect(indexMock).toHaveBeenCalledWith('test-index', 'test-host');
       expect(namespaceMock).toHaveBeenCalledWith('test-ns');
       expect(fetchMock).toHaveBeenCalledWith(['vec1', 'vec2']);
-      expect(result).toEqual([fetchResponse]);
+      expect(result).toEqual([
+        {
+          namespace: 'test-ns',
+          records: fetchResponse.vectors,
+        },
+      ]);
     });
   });
 }); 

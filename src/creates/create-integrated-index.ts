@@ -17,7 +17,7 @@ const perform = async (z: ZObject, bundle: Bundle) => {
     apiKey: bundle.authData.api_key,
   });
 
-  const result = await pinecone.createIndexForModel({
+  const createIndexParams: any = {
     name: name as string,
     cloud: cloud as 'aws' | 'gcp' | 'azure',
     region: region as string,
@@ -27,8 +27,11 @@ const perform = async (z: ZObject, bundle: Bundle) => {
     },
     waitUntilReady: wait_until_ready as boolean,
     deletionProtection: deletion_protection as 'enabled' | 'disabled',
-    tags: JSON.parse(tags as string),
-  });
+  };
+  if (typeof tags === 'string' && tags.trim()) {
+    createIndexParams.tags = JSON.parse(tags);
+  }
+  const result = await pinecone.createIndexForModel(createIndexParams);
   if (result && typeof result === 'object') {
     return { ...result, name, status: 'created' };
   }

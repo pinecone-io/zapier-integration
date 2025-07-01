@@ -6,7 +6,7 @@ import App from '../../index';
 
 const appTester = zapier.createAppTester(App);
 
-describe('triggers.describe_namespace', () => {
+describe('searches.describe_namespace', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -41,7 +41,7 @@ describe('triggers.describe_namespace', () => {
       const indexMock = vi.fn().mockReturnValue({ describeNamespace: describeNamespaceMock });
       vi.spyOn(Pinecone.prototype, 'index').mockImplementation(indexMock as any);
 
-      const result = await appTester((App.triggers.describe_namespace!.operation.perform as any), bundle);
+      const result = await appTester((App.searches.describe_namespace!.operation.perform as any), bundle);
 
       expect(indexMock).toHaveBeenCalledWith('test-index', 'test-host');
       expect(describeNamespaceMock).toHaveBeenCalledWith('test-ns');
