@@ -1,53 +1,5 @@
 import { type Bundle, type Create, type ZObject } from 'zapier-platform-core';
-
-import { API_URL } from '../constants';
-
-interface ServerlessSpec {
-  serverless: {
-    cloud: 'aws' | 'gcp' | 'azure';
-    region: string;
-  };
-}
-
-interface PodSpec {
-  pod: {
-    environment: string;
-    pod_type: string;
-    pods?: number;
-    replicas?: number;
-    shards?: number;
-  };
-}
-
-interface ByocSpec {
-  byoc: {
-    environment: string;
-  };
-}
-
-interface CreateIndexRequest {
-  name: string;
-  dimension: number;
-  metric: 'cosine' | 'euclidean' | 'dotproduct';
-  spec: ServerlessSpec | PodSpec | ByocSpec;
-  deletion_protection?: 'enabled' | 'disabled';
-  tags?: Record<string, string>;
-}
-
-interface PineconeIndex {
-  name: string;
-  metric: string;
-  dimension: number;
-  status: {
-    ready: boolean;
-    state: string;
-  };
-  host: string;
-  spec: ServerlessSpec | PodSpec | ByocSpec;
-  deletion_protection: string;
-  tags: Record<string, string>;
-  vector_type: string;
-}
+import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const {
@@ -66,8 +18,11 @@ const perform = async (z: ZObject, bundle: Bundle) => {
     tags,
   } = bundle.inputData;
 
-  let spec: ServerlessSpec | PodSpec | ByocSpec;
+  const pinecone = new Pinecone({
+    apiKey: bundle.authData.api_key,
+  });
 
+  let spec: any;
   if (spec_type === 'serverless') {
     spec = {
       serverless: {
@@ -75,29 +30,19 @@ const perform = async (z: ZObject, bundle: Bundle) => {
         region: region as string,
       },
     };
-    // Manually validate region because it's not a required field.
     if (!region) {
       throw new Error('Region is required for serverless indexes');
     }
   } else if (spec_type === 'pod') {
-    const podConfig: {
-      environment: string;
-      pod_type: string;
-      pods?: number;
-      replicas?: number;
-      shards?: number;
-    } = {
+    const podConfig: any = {
       environment: environment as string,
       pod_type: pod_type as string,
     };
-
     if (pods) podConfig.pods = parseInt(pods as string, 10);
     if (replicas) podConfig.replicas = parseInt(replicas as string, 10);
     if (shards) podConfig.shards = parseInt(shards as string, 10);
-
     spec = { pod: podConfig };
   } else {
-    // BYOC
     spec = {
       byoc: {
         environment: environment as string,
@@ -105,28 +50,21 @@ const perform = async (z: ZObject, bundle: Bundle) => {
     };
   }
 
-  const requestBody: CreateIndexRequest = {
+  const options: Record<string, any> = {
     name: name as string,
     dimension: parseInt(dimension as string, 10),
     metric: metric as 'cosine' | 'euclidean' | 'dotproduct',
     spec,
   };
-
   if (deletion_protection) {
-    requestBody.deletion_protection = deletion_protection as 'enabled' | 'disabled';
+    options.deletion_protection = deletion_protection as 'enabled' | 'disabled';
   }
-
   if (tags) {
-    requestBody.tags = JSON.parse(tags as string);
+    options.tags = JSON.parse(tags as string);
   }
 
-  const response = await z.request<PineconeIndex>({
-    url: `${API_URL}/indexes`,
-    method: 'POST',
-    body: requestBody,
-  });
-
-  return response.data;
+  await pinecone.createIndex(options as any);
+  return { name: options.name, status: 'created' };
 };
 
 export default {
@@ -201,21 +139,21 @@ export default {
       },
       {
         key: 'pods',
-        label: 'Number of Pods',
+        label: 'Pods',
         type: 'integer',
         helpText: 'The number of pods for pod-based indexes.',
         required: false,
       },
       {
         key: 'replicas',
-        label: 'Number of Replicas',
+        label: 'Replicas',
         type: 'integer',
         helpText: 'The number of replicas for pod-based indexes.',
         required: false,
       },
       {
         key: 'shards',
-        label: 'Number of Shards',
+        label: 'Shards',
         type: 'integer',
         helpText: 'The number of shards for pod-based indexes.',
         required: false,
@@ -226,7 +164,6 @@ export default {
         type: 'string',
         helpText: 'Whether to enable deletion protection for the index.',
         required: false,
-        choices: ['enabled', 'disabled'],
       },
       {
         key: 'tags',
@@ -238,37 +175,11 @@ export default {
     ],
     outputFields: [
       { key: 'name', label: 'Name', type: 'string', primary: true },
-      { key: 'metric', label: 'Metric', type: 'string' },
-      { key: 'dimension', label: 'Dimension', type: 'integer' },
-      { key: 'vector_type', label: 'Vector Type', type: 'string' },
-      { key: 'status', label: 'Status', dict: true },
-      { key: 'status__ready', label: 'Ready', type: 'boolean' },
-      { key: 'status__state', label: 'State', type: 'string' },
-      { key: 'host', label: 'Host', type: 'string' },
-      { key: 'spec', label: 'Spec', dict: true },
-      { key: 'deletion_protection', label: 'Deletion Protection', type: 'string' },
-      { key: 'tags', label: 'Tags', dict: true },
+      { key: 'status', label: 'Status', type: 'string' },
     ],
     sample: {
       name: 'example-index',
-      metric: 'cosine',
-      dimension: 1536,
-      vector_type: 'dense',
-      status: {
-        ready: true,
-        state: 'Ready',
-      },
-      host: 'example-index-abc123.svc.us-east-1-aws.pinecone.io',
-      spec: {
-        serverless: {
-          cloud: 'aws',
-          region: 'us-east-1',
-        },
-      },
-      deletion_protection: 'disabled',
-      tags: {
-        environment: 'production',
-      },
+      status: 'created',
     },
   },
 } satisfies Create;

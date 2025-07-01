@@ -1,26 +1,6 @@
 import { type Bundle, type Create, type ZObject } from 'zapier-platform-core';
 import { Pinecone } from '@pinecone-database/pinecone';
 
-import { API_URL } from '../constants';
-
-interface CreateIntegratedIndexRequest {
-  name: string;
-  cloud: 'aws' | 'gcp' | 'azure';
-  region: string;
-  model: string;
-  field_map: Record<string, string>;
-}
-
-interface CreateIntegratedIndexResponse {
-  name: string;
-  cloud: 'aws' | 'gcp' | 'azure';
-  region: string;
-  model: string;
-  field_map: Record<string, string>;
-  deletion_protection: 'enabled' | 'disabled';
-  wait_until_ready: boolean;
-}
-
 const perform = async (z: ZObject, bundle: Bundle) => {
   const {
     name,
@@ -37,7 +17,7 @@ const perform = async (z: ZObject, bundle: Bundle) => {
     apiKey: bundle.authData.api_key,
   });
 
-  await pinecone.createIndexForModel({
+  const result = await pinecone.createIndexForModel({
     name: name as string,
     cloud: cloud as 'aws' | 'gcp' | 'azure',
     region: region as string,
@@ -49,6 +29,10 @@ const perform = async (z: ZObject, bundle: Bundle) => {
     deletionProtection: deletion_protection as 'enabled' | 'disabled',
     tags: JSON.parse(tags as string),
   });
+  if (result && typeof result === 'object') {
+    return { ...result, name, status: 'created' };
+  }
+  return { name, status: 'created' };
 };
 
 export default {
