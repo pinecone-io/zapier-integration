@@ -35,7 +35,7 @@ describe('searches.list_models', () => {
       ];
       const listModelsMock = vi.fn().mockResolvedValue({ models: modelsResponse });
       __setPineconeMockState({
-        inference: { embed: vi.fn(), listModels: listModelsMock },
+        inference: { embed: vi.fn(), getModel: vi.fn(), listModels: listModelsMock, rerank: vi.fn() },
         describeIndex: vi.fn(),
         listIndexes: vi.fn(),
         index: vi.fn(),
