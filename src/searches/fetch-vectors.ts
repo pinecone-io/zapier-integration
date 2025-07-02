@@ -9,8 +9,8 @@ const perform = async (z: ZObject, bundle: Bundle) => {
   const response = await ns.fetch(parsedIds);
   return [{
     namespace,
-    records: response.vectors,
-    // usage: response.usage, // add if available in real SDK
+    records: response.records,
+    usage: response.usage,
   }];
 };
 

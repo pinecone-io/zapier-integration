@@ -33,10 +33,12 @@ describe('searches.fetch_vectors', () => {
       } satisfies Bundle;
 
       const fetchResponse = {
-        vectors: {
-          vec1: { id: 'vec1', values: [1,2,3], metadata: { genre: 'comedy' } },
-          vec2: { id: 'vec2', values: [4,5,6], metadata: { genre: 'drama' } },
+        namespace: 'test-ns',
+        records: {
+          vec1: { id: 'vec1', values: [1,2,3] },
+          vec2: { id: 'vec2', values: [4,5,6] },
         },
+        usage: { readUnits: 1 },
       };
       const fetchMock = vi.fn().mockResolvedValue(fetchResponse);
       const namespaceMock = vi.fn().mockReturnValue({ fetch: fetchMock });
@@ -51,7 +53,8 @@ describe('searches.fetch_vectors', () => {
       expect(result).toEqual([
         {
           namespace: 'test-ns',
-          records: fetchResponse.vectors,
+          records: fetchResponse.records,
+          usage: { readUnits: 1 },
         },
       ]);
     });
