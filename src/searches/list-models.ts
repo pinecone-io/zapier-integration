@@ -2,9 +2,14 @@ import { type Bundle, type Search, type ZObject } from 'zapier-platform-core';
 import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
-  const pinecone = new Pinecone();
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key });
   const response = await pinecone.inference.listModels();
-  return response.models;
+  const { model } = bundle.inputData;
+  let models = response.models;
+  if (model) {
+    models = models.filter((m: any) => m.model && m.model.includes(model));
+  }
+  return models;
 };
 
 export default {
@@ -16,7 +21,9 @@ export default {
   },
   operation: {
     perform,
-    inputFields: [],
+    inputFields: [
+      { key: 'model', label: 'Model Name', type: 'string', required: false, helpText: 'Search for a model by name.' }
+    ],
     outputFields: [
       { key: 'model', label: 'Model', type: 'string', primary: true },
       { key: 'shortDescription', label: 'Short Description', type: 'string' },
@@ -27,9 +34,9 @@ export default {
       { key: 'maxSequenceLength', label: 'Max Sequence Length', type: 'integer' },
       { key: 'maxBatchSize', label: 'Max Batch Size', type: 'integer' },
       { key: 'providerName', label: 'Provider Name', type: 'string' },
-      { key: 'supportedDimensions', label: 'Supported Dimensions', dict: true },
-      { key: 'supportedMetrics', label: 'Supported Metrics', dict: true },
-      { key: 'supportedParameters', label: 'Supported Parameters', dict: true }
+      { key: 'supportedDimensions', label: 'Supported Dimensions', list: true },
+      { key: 'supportedMetrics', label: 'Supported Metrics', list: true },
+      { key: 'supportedParameters', label: 'Supported Parameters', list: true }
     ],
     sample: {
       model: 'llama-text-embed-v2',

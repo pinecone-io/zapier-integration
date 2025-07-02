@@ -3,9 +3,7 @@ import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const { index_name, index_host, namespace, prefix, limit, paginationToken } = bundle.inputData;
-  const pinecone = new Pinecone({
-    apiKey: bundle.authData.api_key,
-  });
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key });
   const ns = pinecone.index(index_name as string, index_host as string).namespace(namespace as string);
   const options: Record<string, any> = {};
   if (prefix) options.prefix = prefix;
@@ -33,7 +31,7 @@ export default {
       { key: 'paginationToken', label: 'Pagination Token', type: 'string', required: false, helpText: 'Token for fetching the next page of results.' }
     ],
     outputFields: [
-      { key: 'vectors', label: 'Vectors', dict: true },
+      { key: 'vectors', label: 'Vectors', list: true },
       { key: 'pagination', label: 'Pagination', dict: true },
       { key: 'namespace', label: 'Namespace', type: 'string' },
       { key: 'usage', label: 'Usage', dict: true }

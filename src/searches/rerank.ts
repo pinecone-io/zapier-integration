@@ -3,7 +3,7 @@ import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const { model, query, documents, topN, returnDocuments, parameters } = bundle.inputData;
-  const pinecone = new Pinecone();
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key });
   const parsedDocuments = typeof documents === 'string' ? JSON.parse(documents) : documents;
   const parsedParameters = parameters && typeof parameters === 'string' ? JSON.parse(parameters) : parameters;
   const rerankOptions: Record<string, any> = {};
@@ -38,7 +38,7 @@ export default {
     ],
     outputFields: [
       { key: 'model', label: 'Model', type: 'string' },
-      { key: 'data', label: 'Reranked Data', dict: true },
+      { key: 'data', label: 'Reranked Data', list: true },
       { key: 'usage', label: 'Usage', dict: true }
     ],
     sample: {

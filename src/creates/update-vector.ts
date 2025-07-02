@@ -7,9 +7,33 @@ const perform = async (z: ZObject, bundle: Bundle) => {
     apiKey: bundle.authData.api_key,
   });
   const ns = pinecone.index(index_name as string, index_host as string).namespace(namespace as string);
-  const parsedUpdate = typeof update === 'string' ? JSON.parse(update) : update;
-  await ns.update(parsedUpdate);
-  return { success: true, id: parsedUpdate.id, name: parsedUpdate.id, status: 'updated' };
+  let updateObj: any = update;
+  if (typeof update === 'string') {
+    // Try to fix unquoted keys (e.g., {id: ...}) to {"id": ...}
+    let fixed = update.replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
+    try {
+      updateObj = JSON.parse(fixed);
+    } catch {
+      // Try YAML-like parsing for id and metadata
+      const idMatch = update.match(/id:\s*([\w-]+)/);
+      const metadataMatch = update.match(/metadata:\s*({[^}]+})/);
+      if (idMatch) {
+        updateObj = { id: idMatch[1] };
+        if (metadataMatch) {
+          try {
+            updateObj.metadata = JSON.parse(metadataMatch[1].replace(/([a-zA-Z0-9_]+)\s*:/g, '"$1":'));
+          } catch {}
+        }
+      } else {
+        throw new Error('The "update" field could not be parsed. Expected JSON object with quoted keys or YAML-like id/metadata.');
+      }
+    }
+  }
+  if (!updateObj || typeof updateObj !== 'object' || !updateObj.id) {
+    throw new Error('The "update" field must be an object with an "id" property.');
+  }
+  await ns.update(updateObj);
+  return { success: true, id: updateObj.id, name: updateObj.id, status: 'updated' };
 };
 
 export default {

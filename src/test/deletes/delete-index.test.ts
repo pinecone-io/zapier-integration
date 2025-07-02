@@ -6,7 +6,7 @@ import App from '../../index';
 
 const appTester = zapier.createAppTester(App);
 
-describe('creates.delete_index', () => {
+describe('deletes.delete_index', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -32,10 +32,10 @@ describe('creates.delete_index', () => {
       const deleteIndexMock = vi.fn().mockResolvedValue(undefined);
       vi.spyOn(Pinecone.prototype, 'deleteIndex').mockImplementation(deleteIndexMock);
 
-      const result = await appTester(App.creates.delete_index!.operation.perform, bundle);
+      const result = await appTester(App.creates.delete_index!.operation.perform as any, bundle);
 
       expect(deleteIndexMock).toHaveBeenCalledWith('test-index');
-      expect(result).toEqual({ success: true, index_name: 'test-index', name: 'test-index', status: 'deleted' });
+      expect(result).toEqual({ message: 'Delete successful' });
     });
   });
 }); 

@@ -3,7 +3,7 @@ import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const { model } = bundle.inputData;
-  const pinecone = new Pinecone();
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key });
   const response = await pinecone.inference.getModel(model as string);
   return [response];
 };
@@ -30,9 +30,9 @@ export default {
       { key: 'maxSequenceLength', label: 'Max Sequence Length', type: 'integer' },
       { key: 'maxBatchSize', label: 'Max Batch Size', type: 'integer' },
       { key: 'providerName', label: 'Provider Name', type: 'string' },
-      { key: 'supportedDimensions', label: 'Supported Dimensions', dict: true },
-      { key: 'supportedMetrics', label: 'Supported Metrics', dict: true },
-      { key: 'supportedParameters', label: 'Supported Parameters', dict: true }
+      { key: 'supportedDimensions', label: 'Supported Dimensions', list: true },
+      { key: 'supportedMetrics', label: 'Supported Metrics', list: true },
+      { key: 'supportedParameters', label: 'Supported Parameters', list: true }
     ],
     sample: {
       model: 'llama-text-embed-v2',

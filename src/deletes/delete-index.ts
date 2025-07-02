@@ -7,7 +7,7 @@ const perform = async (z: ZObject, bundle: Bundle) => {
     apiKey: bundle.authData.api_key,
   });
   await pinecone.deleteIndex(index_name as string);
-  return { success: true, index_name, name: index_name, status: 'deleted' };
+  return { message: 'Delete successful' };
 };
 
 export default {
@@ -24,12 +24,10 @@ export default {
       { key: 'index_name', label: 'Index Name', type: 'string', required: true, helpText: 'The name of the Pinecone index to delete.' }
     ],
     outputFields: [
-      { key: 'success', label: 'Success', type: 'boolean' },
-      { key: 'index_name', label: 'Index Name', type: 'string' }
+      { key: 'message', label: 'Message', type: 'string' }
     ],
     sample: {
-      success: true,
-      index_name: 'docs-example'
+      message: 'Delete successful'
     }
   }
 } satisfies Create; 

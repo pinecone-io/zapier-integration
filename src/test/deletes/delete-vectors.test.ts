@@ -38,12 +38,12 @@ describe('creates.delete_vectors', () => {
       const indexMock = vi.fn().mockReturnValue({ namespace: namespaceMock });
       vi.spyOn(Pinecone.prototype, 'index').mockImplementation(indexMock as any);
 
-      const result = await appTester(App.creates.delete_vectors!.operation.perform, bundle);
+      const result = await appTester(App.creates.delete_vectors!.operation.perform as any, bundle);
 
       expect(indexMock).toHaveBeenCalledWith('test-index', 'test-host');
       expect(namespaceMock).toHaveBeenCalledWith('test-ns');
       expect(deleteManyMock).toHaveBeenCalledWith(['id-1', 'id-2']);
-      expect(result).toEqual({ success: true, ids: ['id-1', 'id-2'], name: 'test-index', status: 'deleted' });
+      expect(result).toEqual({ message: 'Delete successful' });
     });
 
     it('should delete a single vector with deleteOne', async () => {
@@ -63,12 +63,12 @@ describe('creates.delete_vectors', () => {
       const indexMock = vi.fn().mockReturnValue({ namespace: namespaceMock });
       vi.spyOn(Pinecone.prototype, 'index').mockImplementation(indexMock as any);
 
-      const result = await appTester(App.creates.delete_vectors!.operation.perform, bundle);
+      const result = await appTester(App.creates.delete_vectors!.operation.perform as any, bundle);
 
       expect(indexMock).toHaveBeenCalledWith('test-index', 'test-host');
       expect(namespaceMock).toHaveBeenCalledWith('test-ns');
       expect(deleteOneMock).toHaveBeenCalledWith('id-3');
-      expect(result).toEqual({ success: true, ids: ['id-3'], name: 'test-index', status: 'deleted' });
+      expect(result).toEqual({ message: 'Delete successful' });
     });
   });
 }); 

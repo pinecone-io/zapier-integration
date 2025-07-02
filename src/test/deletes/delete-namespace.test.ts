@@ -6,7 +6,7 @@ import App from '../../index';
 
 const appTester = zapier.createAppTester(App);
 
-describe('creates.delete_namespace', () => {
+describe('deletes.delete_namespace', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -31,15 +31,17 @@ describe('creates.delete_namespace', () => {
         },
       } satisfies Bundle;
 
-      const deleteNamespaceMock = vi.fn().mockResolvedValue(undefined);
-      const indexMock = vi.fn().mockReturnValue({ deleteNamespace: deleteNamespaceMock });
+      const deleteAllMock = vi.fn().mockResolvedValue(undefined);
+      const namespaceMock = vi.fn().mockReturnValue({ deleteAll: deleteAllMock });
+      const indexMock = vi.fn().mockReturnValue({ namespace: namespaceMock });
       vi.spyOn(Pinecone.prototype, 'index').mockImplementation(indexMock as any);
 
-      const result = await appTester(App.creates.delete_namespace!.operation.perform, bundle);
+      const result = await appTester(App.creates.delete_namespace!.operation.perform as any, bundle);
 
       expect(indexMock).toHaveBeenCalledWith('test-index', 'test-host');
-      expect(deleteNamespaceMock).toHaveBeenCalledWith('test-ns');
-      expect(result).toEqual({ success: true, namespace: 'test-ns', name: 'test-ns', status: 'deleted' });
+      expect(namespaceMock).toHaveBeenCalledWith('test-ns');
+      expect(deleteAllMock).toHaveBeenCalled();
+      expect(result).toEqual({ message: 'Delete successful' });
     });
   });
 }); 

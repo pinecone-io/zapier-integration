@@ -13,9 +13,7 @@ const perform = async (z: ZObject, bundle: Bundle) => {
     tags,
   } = bundle.inputData;
 
-  const pinecone = new Pinecone({
-    apiKey: bundle.authData.api_key,
-  });
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key });
 
   const createIndexParams: any = {
     name: name as string,

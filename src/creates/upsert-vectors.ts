@@ -1,15 +1,54 @@
 import { type Bundle, type Create, type ZObject } from 'zapier-platform-core';
 import { Pinecone } from '@pinecone-database/pinecone';
+import yaml from 'js-yaml';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const { index_name, index_host, namespace, records } = bundle.inputData;
   const pinecone = new Pinecone({
     apiKey: bundle.authData.api_key,
   });
+  let recordsToUpsert: any[] = [];
+  if (typeof records === 'string') {
+    // Split the string into record blocks by double newlines or similar
+    const recordBlocks = records.split(/\n(?=id: )/g);
+    for (const block of recordBlocks) {
+      const idMatch = block.match(/id:\s*([\w-]+)/);
+      const valuesMatch = block.match(/values:\s*\[([^\]]+)\]/);
+      if (idMatch && valuesMatch) {
+        const id = idMatch[1].trim();
+        const valuesStr = valuesMatch[1].trim();
+        const values = valuesStr.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
+        recordsToUpsert.push({ id, values });
+      }
+    }
+    if (recordsToUpsert.length === 0) {
+      throw new Error('The "records" field could not be parsed. Expected format: id: ...\\nvalues: [...]');
+    }
+  } else if (Array.isArray(records)) {
+    recordsToUpsert = records;
+  } else if (typeof records === 'object' && records !== null) {
+    recordsToUpsert = Object.values(records);
+  } else {
+    throw new Error('The "records" field must be a JSON array.');
+  }
+
+  // Helper to generate a UUID v4
+  function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  // Ensure each record has an 'id'. If not, assign a UUID.
+  recordsToUpsert = recordsToUpsert.map((rec: any) => ({
+    ...rec,
+    id: rec.id || uuidv4(),
+  }));
+
   const ns = pinecone.index(index_name as string, index_host as string).namespace(namespace as string);
-  const parsedRecords = typeof records === 'string' ? JSON.parse(records) : records;
-  await ns.upsert(parsedRecords);
-  return { upsertedCount: parsedRecords.length, name: index_name, status: 'upserted' };
+  await ns.upsert(recordsToUpsert);
+  return { upsertedCount: recordsToUpsert.length, name: index_name, status: 'upserted' };
 };
 
 export default {

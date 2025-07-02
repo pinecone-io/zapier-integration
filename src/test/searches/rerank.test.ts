@@ -35,10 +35,12 @@ describe('searches.rerank', () => {
       } satisfies Bundle;
 
       const rerankResponse = {
-        results: [
-          { index: 0, relevance_score: 0.95 },
-          { index: 1, relevance_score: 0.75 },
+        model: 'bge-reranker-v2-m3',
+        data: [
+          { index: 0, score: 0.95, document: 'Zapier is an automation tool.' },
+          { index: 1, score: 0.75, document: 'Pinecone is a vector database.' },
         ],
+        usage: { rerankUnits: 1 },
       };
       const rerankMock = vi.fn().mockResolvedValue(rerankResponse);
       __setPineconeMockState({

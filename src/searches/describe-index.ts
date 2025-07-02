@@ -3,9 +3,7 @@ import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const { index_name } = bundle.inputData;
-  const pinecone = new Pinecone({
-    apiKey: bundle.authData.api_key,
-  });
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key });
   const response = await pinecone.describeIndex(index_name as string);
   // Return as an array for Zapier triggers
   return [response];

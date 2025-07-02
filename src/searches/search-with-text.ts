@@ -3,7 +3,7 @@ import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const { index_name, index_host, namespace, query, fields, rerank } = bundle.inputData;
-  const pinecone = new Pinecone();
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key });
   const ns = pinecone.index(index_name as string, index_host as string).namespace(namespace as string);
   // For test compatibility, build options as expected by the test
   const options: any = {
@@ -19,8 +19,8 @@ export default {
   key: 'search_with_text',
   noun: 'Text Search',
   display: {
-    label: 'Search with Text/Vector/ID',
-    description: 'Searches records in a Pinecone index namespace using text, vector, or ID, with rerank support.'
+    label: 'Search With Text',
+    description: 'Searches records in a Pinecone index namespace using text, with rerank support.'
   },
   operation: {
     perform,

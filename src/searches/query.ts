@@ -38,7 +38,7 @@ export default {
       { key: 'includeValues', label: 'Include Values', type: 'boolean', required: false, helpText: 'Whether to include vector values in the results.' }
     ],
     outputFields: [
-      { key: 'matches', label: 'Matches', dict: true },
+      { key: 'matches', label: 'Matches', list: true },
       { key: 'namespace', label: 'Namespace', type: 'string' },
       { key: 'usage', label: 'Usage', dict: true }
     ],

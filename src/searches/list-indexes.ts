@@ -17,8 +17,12 @@ const toSnakeCase = (obj: any): any => {
 const perform = async (z: ZObject, bundle: Bundle) => {
   const pinecone = new Pinecone();
   const response = await pinecone.listIndexes();
-  // Convert each index to snake_case keys
-  return response.indexes.map(toSnakeCase);
+  const { name } = bundle.inputData;
+  let indexes = response.indexes.map(toSnakeCase);
+  if (name) {
+    indexes = indexes.filter((idx: any) => idx.name && idx.name.includes(name));
+  }
+  return indexes;
 };
 
 export default {
@@ -30,6 +34,9 @@ export default {
   },
   operation: {
     perform,
+    inputFields: [
+      { key: 'name', label: 'Index Name', type: 'string', required: false, helpText: 'Search for an index by name.' }
+    ],
     outputFields: [
       { key: 'name', label: 'Name', type: 'string', primary: true },
       { key: 'metric', label: 'Metric', type: 'string' },

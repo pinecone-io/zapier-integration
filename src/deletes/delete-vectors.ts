@@ -7,40 +7,28 @@ const perform = async (z: ZObject, bundle: Bundle) => {
     apiKey: bundle.authData.api_key,
   });
   const ns = pinecone.index(index_name as string, index_host as string).namespace(namespace as string);
-  let deleted;
-  let idsToDelete;
   if (typeof ids === 'string') {
     try {
       const parsed = JSON.parse(ids);
       if (Array.isArray(parsed)) {
         await ns.deleteMany(parsed);
-        deleted = true;
-        idsToDelete = parsed;
       } else {
         if (typeof parsed === 'string') {
           await ns.deleteOne(parsed);
-          deleted = true;
-          idsToDelete = [parsed];
         }
       }
     } catch {
       // Not JSON, treat as single id string
       if (typeof ids === 'string') {
         await ns.deleteOne(ids);
-        deleted = true;
-        idsToDelete = [ids];
       }
     }
   } else if (Array.isArray(ids)) {
     await ns.deleteMany(ids);
-    deleted = true;
-    idsToDelete = ids;
   } else if (typeof ids === 'string') {
     await ns.deleteOne(ids);
-    deleted = true;
-    idsToDelete = [ids];
   }
-  return { success: deleted, ids: idsToDelete, name: index_name, status: 'deleted' };
+  return { message: 'Delete successful' };
 };
 
 export default {
@@ -65,12 +53,10 @@ export default {
       { key: 'ids', label: 'IDs', type: 'text', required: true, helpText: 'A single vector ID or a JSON array of IDs to delete (e.g., "id-1" or ["id-2", "id-3"]).' }
     ],
     outputFields: [
-      { key: 'success', label: 'Success', type: 'boolean' },
-      { key: 'ids', label: 'Deleted IDs', type: 'string' }
+      { key: 'message', label: 'Message', type: 'string' }
     ],
     sample: {
-      success: true,
-      ids: ['id-1', 'id-2']
+      message: 'Delete successful'
     }
   }
 } satisfies Create; 
