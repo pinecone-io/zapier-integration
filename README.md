@@ -1,26 +1,25 @@
-# Pinecone
+# Pinecone Zapier Integration
 
 ## Prerequisites
 
 - Set up your environment as described in the [root level README](../../README.md#setup).
-- Zapier staff only: Add yourself as a collaborator [here](https://zapier.com/app/developer/app/226171/team), and accept the email invitation. This will grant you write access to the app.
+- Pinecone personnel: Ensure you have access to this repository and the necessary credentials for local development.
 
 ## Development
 
-1. From the root of the repository, navigate to your app directory `cd apps/pinecone`
-2. `npm install` to install dependencies from npm (don't forget to commit the generated `package-lock.json`).
-3. Make your app changes.
-4. `zapier test` to run unit tests. Note: These should not make live API calls.
-5. Bump the version in package.json. Use [SemVer](http://semver.org/) for versioning.
-6. Fill in a [changelog](CHANGELOG.md) entry for your new version.
-7. Open an MR on gitlab and follow the [test and deploy instructions](../../README.md#testing-and-deploying)
+1. From the root of the repository, navigate to your app directory: `cd apps/pinecone` (or the appropriate path).
+2. Run `npm install` to install dependencies (commit the generated `package-lock.json`).
+3. Make your app changes as needed.
+4. Run `npm test` (or `vitest`) to execute unit tests. These tests use mocks and do not make live API calls.
+5. Bump the version in `package.json` using [SemVer](http://semver.org/) for versioning.
+6. Add a [changelog](CHANGELOG.md) entry for your new version.
+7. Open a pull request and follow the [test and deploy instructions](../../README.md#testing-and-deploying).
 
-## Test Accounts
+## Local Testing
 
-- When testing in the Zap Editor, use API key found in 1Password (linked to `developer-account@zapier.com` username)
-
-<!-- Include any API links that would be useful -->
+- When running or developing locally, use your own Pinecone API key for any manual API tests. Do not commit or share API keys.
+- All automated tests are fully mocked and do not require a live Pinecone account.
 
 ## API Links
 
-- https://docs.pinecone.io/reference/api/introduction
+- [Pinecone API Reference](https://docs.pinecone.io/reference/api/introduction)
