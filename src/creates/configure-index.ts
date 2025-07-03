@@ -14,6 +14,7 @@ const perform = async (z: ZObject, bundle: Bundle) => {
 
   const pinecone = new Pinecone({
     apiKey: bundle.authData.api_key,
+    sourceTag: 'zapier',
   });
 
   // Build the config object dynamically

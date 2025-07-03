@@ -3,7 +3,7 @@ import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const { index_name, index_host, namespace, ids } = bundle.inputData;
-  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key });
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
   const ns = pinecone.index(index_name as string, index_host as string).namespace(namespace as string);
   const parsedIds = typeof ids === 'string' ? JSON.parse(ids) : ids;
   const response = await ns.fetch(parsedIds);
@@ -18,8 +18,8 @@ export default {
   key: 'fetch_vectors',
   noun: 'Vector',
   display: {
-    label: 'Fetch Vectors',
-    description: 'Fetches vectors from a Pinecone index namespace by ID.'
+    label: 'Advanced: Fetch Vectors',
+    description: 'For power users: Fetches raw vector data from a Pinecone index. Not needed for most Zapier workflows.'
   },
   operation: {
     perform,

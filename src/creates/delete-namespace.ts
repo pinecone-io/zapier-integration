@@ -5,6 +5,7 @@ const perform = async (z: ZObject, bundle: Bundle) => {
   const { index_name, index_host, namespace } = bundle.inputData;
   const pinecone = new Pinecone({
     apiKey: bundle.authData.api_key,
+    sourceTag: 'zapier',
   });
   await pinecone.index(index_name as string, index_host as string).namespace(namespace as string).deleteAll();
   return { message: 'Delete successful' };

@@ -6,7 +6,7 @@ import App from '../../index';
 
 const appTester = zapier.createAppTester(App);
 
-describe('searches.search_with_text', () => {
+describe('creates.delete_namespace', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -21,40 +21,27 @@ describe('searches.search_with_text', () => {
   } satisfies Bundle;
 
   describe('perform', () => {
-    it('should search with text in a namespace', async () => {
+    it('should delete a namespace', async () => {
       const bundle = {
         ...baseBundle,
         inputData: {
           index_name: 'test-index',
           index_host: 'test-host',
           namespace: 'test-ns',
-          topK: 2,
-          text: 'find this',
-          filter: '{"genre": "comedy"}',
         },
       } satisfies Bundle;
 
-      const queryResponse = {
-        matches: [
-          { id: 'vec1', score: 0.99 },
-          { id: 'vec2', score: 0.95 },
-        ],
-      };
-      const queryMock = vi.fn().mockResolvedValue(queryResponse);
-      const namespaceMock = vi.fn().mockReturnValue({ query: queryMock });
+      const deleteAllMock = vi.fn().mockResolvedValue(undefined);
+      const namespaceMock = vi.fn().mockReturnValue({ deleteAll: deleteAllMock });
       const indexMock = vi.fn().mockReturnValue({ namespace: namespaceMock });
       vi.spyOn(Pinecone.prototype, 'index').mockImplementation(indexMock as any);
 
-      const result = await appTester((App.searches.search_with_text!.operation.perform as any), bundle);
+      const result = await appTester(App.creates.delete_namespace!.operation.perform as any, bundle);
 
       expect(indexMock).toHaveBeenCalledWith('test-index', 'test-host');
       expect(namespaceMock).toHaveBeenCalledWith('test-ns');
-      expect(queryMock).toHaveBeenCalledWith({
-        topK: 2,
-        filter: { genre: 'comedy' },
-        text: 'find this',
-      });
-      expect(result).toEqual([queryResponse]);
+      expect(deleteAllMock).toHaveBeenCalled();
+      expect(result).toEqual({ message: 'Delete successful' });
     });
   });
 }); 

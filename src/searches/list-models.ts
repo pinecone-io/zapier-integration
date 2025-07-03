@@ -2,7 +2,7 @@ import { type Bundle, type Search, type ZObject } from 'zapier-platform-core';
 import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
-  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key });
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
   const response = await pinecone.inference.listModels();
   const { model } = bundle.inputData;
   let models = response.models;

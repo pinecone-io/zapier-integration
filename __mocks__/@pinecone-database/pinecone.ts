@@ -10,6 +10,7 @@ type PineconeMockState = {
   describeIndex: ReturnType<typeof vi.fn>;
   listIndexes: ReturnType<typeof vi.fn>;
   index: ReturnType<typeof vi.fn>;
+  configureIndex: ReturnType<typeof vi.fn>;
 };
 
 const pineconeMockState: PineconeMockState = {
@@ -22,7 +23,15 @@ const pineconeMockState: PineconeMockState = {
   describeIndex: vi.fn(),
   listIndexes: vi.fn(),
   index: vi.fn(),
+  configureIndex: vi.fn(),
 };
+
+// Helper: always return an object with namespace() for index()
+function createIndexMock(namespaceImpl?: any) {
+  return vi.fn().mockImplementation(() => ({
+    namespace: namespaceImpl || vi.fn()
+  }));
+}
 
 export class Pinecone {
   constructor() {}
@@ -36,7 +45,23 @@ export class Pinecone {
   }
   describeIndex = pineconeMockState.describeIndex;
   listIndexes = pineconeMockState.listIndexes;
-  index = pineconeMockState.index;
+  index = (...args: any[]) => {
+    // If the test set a custom index mock, use it
+    if (typeof pineconeMockState.index === 'function') {
+      const result = pineconeMockState.index(...args);
+      // If the result has a namespace function, return as is
+      if (result && typeof result.namespace === 'function') return result;
+    }
+    // Default: return an object with a namespace function that returns an object with upsert/update/deleteOne mocks
+    return {
+      namespace: vi.fn().mockReturnValue({
+        upsert: vi.fn(),
+        update: vi.fn(),
+        deleteOne: vi.fn(),
+      })
+    };
+  };
+  configureIndex = pineconeMockState.configureIndex;
 }
 
 export function __setPineconeMockState(newState: Partial<PineconeMockState>) {
@@ -44,4 +69,4 @@ export function __setPineconeMockState(newState: Partial<PineconeMockState>) {
 }
 export function __getPineconeMockState() {
   return pineconeMockState;
-}
+} 

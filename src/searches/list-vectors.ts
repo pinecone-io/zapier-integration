@@ -3,7 +3,7 @@ import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const { index_name, index_host, namespace, prefix, limit, paginationToken } = bundle.inputData;
-  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key });
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
   const ns = pinecone.index(index_name as string, index_host as string).namespace(namespace as string);
   const options: Record<string, any> = {};
   if (prefix) options.prefix = prefix;
@@ -17,8 +17,8 @@ export default {
   key: 'list_vectors',
   noun: 'Vector',
   display: {
-    label: 'List Vectors',
-    description: 'Lists vectors in a Pinecone index namespace, with optional prefix and pagination.'
+    label: 'Advanced: List Vectors',
+    description: 'For power users: Lists all vectors in a Pinecone index. Not needed for most Zapier workflows.'
   },
   operation: {
     perform,

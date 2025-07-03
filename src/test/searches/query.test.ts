@@ -21,7 +21,7 @@ describe('searches.query', () => {
   } satisfies Bundle;
 
   describe('perform', () => {
-    it('should query vectors in a namespace', async () => {
+    it('should query an index', async () => {
       const bundle = {
         ...baseBundle,
         inputData: {
@@ -29,7 +29,8 @@ describe('searches.query', () => {
           index_host: 'test-host',
           namespace: 'test-ns',
           topK: 2,
-          vector: '[0.1,0.2,0.3]',
+          text: 'find this',
+          filter: '{"genre": "comedy"}',
         },
       } satisfies Bundle;
 
@@ -50,7 +51,8 @@ describe('searches.query', () => {
       expect(namespaceMock).toHaveBeenCalledWith('test-ns');
       expect(queryMock).toHaveBeenCalledWith({
         topK: 2,
-        vector: [0.1, 0.2, 0.3],
+        filter: { genre: 'comedy' },
+        text: 'find this',
       });
       expect(result).toEqual([queryResponse]);
     });

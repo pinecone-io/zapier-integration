@@ -3,7 +3,7 @@ import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const { index_name } = bundle.inputData;
-  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key });
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
   const response = await pinecone.describeIndex(index_name as string);
   // Return as an array for Zapier triggers
   return [response];
@@ -13,8 +13,8 @@ export default {
   key: 'describe_index',
   noun: 'Index',
   display: {
-    label: 'Describe Index',
-    description: 'Describes a Pinecone index.'
+    label: 'Advanced: Describe Index',
+    description: 'For power users: Returns detailed configuration and status for a Pinecone index. Not needed for most Zapier workflows.'
   },
   operation: {
     perform,

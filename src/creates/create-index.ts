@@ -13,7 +13,7 @@ const perform = async (z: ZObject, bundle: Bundle) => {
     tags,
   } = bundle.inputData;
 
-  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key });
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
 
   const createIndexParams: any = {
     name: name as string,
@@ -37,11 +37,11 @@ const perform = async (z: ZObject, bundle: Bundle) => {
 };
 
 export default {
-  key: 'create_integrated_index',
+  key: 'create_index',
   noun: 'Index',
   display: {
-    label: 'Create Integrated Index',
-    description: 'Creates a new Pinecone integrated index with specified configuration.',
+    label: 'Create Index',
+    description: 'Creates a new Pinecone index with specified configuration.',
   },
   operation: {
     perform,
@@ -50,7 +50,7 @@ export default {
         key: 'name',
         label: 'Index Name',
         type: 'string',
-        helpText: 'The name of the integrated index. Must be **unique** within your project.',
+        helpText: 'The name of the index. Must be **unique** within your project.',
         required: true,
       },
       {
@@ -74,6 +74,11 @@ export default {
         type: 'string',
         helpText: 'The model to use for the index.',
         required: true,
+        choices: [
+          'llama-text-embed-v2',
+          'multilingual-e5-large',
+          'pinecone-sparse-english-v0',
+        ]
       },
       {
         key: 'field_map',

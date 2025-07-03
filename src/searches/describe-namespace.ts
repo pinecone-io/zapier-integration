@@ -3,7 +3,7 @@ import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const { index_name, index_host, namespace } = bundle.inputData;
-  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key });
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
   const index = pinecone.index(index_name as string, index_host as string);
   const response = await index.describeNamespace(namespace as string);
   // Return as an array for Zapier triggers
@@ -14,8 +14,8 @@ export default {
   key: 'describe_namespace',
   noun: 'Namespace',
   display: {
-    label: 'Describe Namespace',
-    description: 'Describes a Pinecone namespace.'
+    label: 'Advanced: Describe Namespace',
+    description: 'For power users: Returns detailed information about a Pinecone namespace. Not needed for most Zapier workflows.'
   },
   operation: {
     perform,

@@ -3,7 +3,7 @@ import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const { model, query, documents, topN, returnDocuments, parameters } = bundle.inputData;
-  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key });
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
   const parsedDocuments = typeof documents === 'string' ? JSON.parse(documents) : documents;
   const parsedParameters = parameters && typeof parameters === 'string' ? JSON.parse(parameters) : parameters;
   const rerankOptions: Record<string, any> = {};
@@ -29,7 +29,13 @@ export default {
   operation: {
     perform,
     inputFields: [
-      { key: 'model', label: 'Model', type: 'string', required: true, helpText: 'The reranking model to use (e.g., bge-reranker-v2-m3).' },
+      { key: 'model', label: 'Model', type: 'string', required: true, helpText: 'The reranking model to use (e.g., bge-reranker-v2-m3).',
+        choices: [
+          'bge-reranker-v2-m3',
+          'cohere-rerank-3.5',
+          'pinecone-rerank-v0',
+        ]
+      },
       { key: 'query', label: 'Query', type: 'string', required: true, helpText: 'The query string to rerank against.' },
       { key: 'documents', label: 'Documents', type: 'text', required: true, helpText: 'An array of documents as JSON (e.g., [{"id": "vec1", "text": "..."}]).' },
       { key: 'topN', label: 'Top N', type: 'integer', required: false, helpText: 'Number of top results to return.' },

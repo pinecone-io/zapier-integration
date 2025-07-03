@@ -7,16 +7,12 @@ import { addApiKeyHeader } from './middleware';
 
 // Creates
 import ConfigureIndex from './creates/configure-index';
-import CreateIntegratedIndex from './creates/create-integrated-index';
-import CreatePodIndex from './creates/create-pod-index';
-import CreateServerlessIndex from './creates/create-serverless-index';
-import Embed from './creates/embed';
-import UpdateVector from './creates/update-vector';
-import UpsertText from './creates/upsert-text';
-import UpsertVectors from './creates/upsert-vectors';
-import DeleteIndex from './deletes/delete-index';
-import DeleteNamespace from './deletes/delete-namespace';
-import DeleteVector from './deletes/delete-vectors';
+import CreateIndex from './creates/create-index';
+import DeleteIndex from './creates/delete-index';
+import DeleteDocument from './creates/delete-document';
+import DeleteNamespace from './creates/delete-namespace';
+import AddDocument from './creates/add-document';
+import UpdateDocument from './creates/update-document';
 
 // Searches
 import describeIndex from './searches/describe-index';
@@ -30,7 +26,6 @@ import listNamespaces from './searches/list-namespaces';
 import listVectors from './searches/list-vectors';
 import query from './searches/query';
 import rerank from './searches/rerank';
-import searchWithText from './searches/search-with-text';
 
 // Triggers
 import IndexStatusChange from './triggers/index-status-change';
@@ -57,16 +52,12 @@ export default {
 
   creates: {
     [ConfigureIndex.key]: ConfigureIndex,
-    [CreateIntegratedIndex.key]: CreateIntegratedIndex,
-    [CreateServerlessIndex.key]: CreateServerlessIndex,
-    [CreatePodIndex.key]: CreatePodIndex,
-    [Embed.key]: Embed,
-    [UpdateVector.key]: UpdateVector,
-    [UpsertText.key]: UpsertText,
-    [UpsertVectors.key]: UpsertVectors,
+    [CreateIndex.key]: CreateIndex,
+    [AddDocument.key]: AddDocument,
+    [UpdateDocument.key]: UpdateDocument,
     [DeleteIndex.key]: DeleteIndex,
     [DeleteNamespace.key]: DeleteNamespace,
-    [DeleteVector.key]: DeleteVector,
+    [DeleteDocument.key]: DeleteDocument,
   },
 
   searches: {
@@ -81,6 +72,5 @@ export default {
     [listVectors.key]: listVectors,
     [query.key]: query,
     [rerank.key]: rerank,
-    [searchWithText.key]: searchWithText,
   },
 };

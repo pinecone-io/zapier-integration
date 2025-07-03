@@ -6,7 +6,7 @@ import App from '../../index';
 
 const appTester = zapier.createAppTester(App);
 
-describe('deletes.delete_namespace', () => {
+describe('creates.delete_index', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -21,26 +21,20 @@ describe('deletes.delete_namespace', () => {
   } satisfies Bundle;
 
   describe('perform', () => {
-    it('should delete a namespace', async () => {
+    it('should delete an index', async () => {
       const bundle = {
         ...baseBundle,
         inputData: {
           index_name: 'test-index',
-          index_host: 'test-host',
-          namespace: 'test-ns',
         },
       } satisfies Bundle;
 
-      const deleteAllMock = vi.fn().mockResolvedValue(undefined);
-      const namespaceMock = vi.fn().mockReturnValue({ deleteAll: deleteAllMock });
-      const indexMock = vi.fn().mockReturnValue({ namespace: namespaceMock });
-      vi.spyOn(Pinecone.prototype, 'index').mockImplementation(indexMock as any);
+      const deleteIndexMock = vi.fn().mockResolvedValue(undefined);
+      vi.spyOn(Pinecone.prototype, 'deleteIndex').mockImplementation(deleteIndexMock);
 
-      const result = await appTester(App.creates.delete_namespace!.operation.perform as any, bundle);
+      const result = await appTester(App.creates.delete_index!.operation.perform as any, bundle);
 
-      expect(indexMock).toHaveBeenCalledWith('test-index', 'test-host');
-      expect(namespaceMock).toHaveBeenCalledWith('test-ns');
-      expect(deleteAllMock).toHaveBeenCalled();
+      expect(deleteIndexMock).toHaveBeenCalledWith('test-index');
       expect(result).toEqual({ message: 'Delete successful' });
     });
   });

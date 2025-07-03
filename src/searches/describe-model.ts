@@ -3,7 +3,7 @@ import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const { model } = bundle.inputData;
-  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key });
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
   const response = await pinecone.inference.getModel(model as string);
   return [response];
 };
@@ -12,8 +12,8 @@ export default {
   key: 'describe_model',
   noun: 'Model',
   display: {
-    label: 'Describe Model',
-    description: 'Describes a Pinecone embedding or reranking model.'
+    label: 'Advanced: Describe Model',
+    description: 'For power users: Returns detailed information about a Pinecone embedding or reranking model. Not needed for most Zapier workflows.'
   },
   operation: {
     perform,

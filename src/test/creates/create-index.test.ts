@@ -6,7 +6,7 @@ import App from '../../index';
 
 const appTester = zapier.createAppTester(App);
 
-describe('creates.create_integrated_index', () => {
+describe('creates.create_index', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -21,7 +21,7 @@ describe('creates.create_integrated_index', () => {
   } satisfies Bundle;
 
   describe('perform', () => {
-    it('should create an integrated index with basic config', async () => {
+    it('should create an index with basic config', async () => {
       const bundle = {
         ...baseBundle,
         inputData: {
@@ -39,7 +39,7 @@ describe('creates.create_integrated_index', () => {
       });
       vi.spyOn(Pinecone.prototype, 'createIndexForModel').mockImplementation(createIndexForModelMock);
 
-      const result = await appTester(App.creates.create_integrated_index!.operation.perform, bundle);
+      const result = await appTester(App.creates.create_index!.operation.perform as any, bundle);
 
       expect(createIndexForModelMock).toHaveBeenCalledWith(expect.objectContaining({
         name: 'integrated-index',
@@ -53,7 +53,7 @@ describe('creates.create_integrated_index', () => {
       }));
     });
 
-    it('should create an integrated index with tags', async () => {
+    it('should create an index with tags', async () => {
       const bundle = {
         ...baseBundle,
         inputData: {
@@ -73,7 +73,7 @@ describe('creates.create_integrated_index', () => {
       });
       vi.spyOn(Pinecone.prototype, 'createIndexForModel').mockImplementation(createIndexForModelMock);
 
-      const result = await appTester(App.creates.create_integrated_index!.operation.perform, bundle);
+      const result = await appTester(App.creates.create_index!.operation.perform as any, bundle);
 
       expect(createIndexForModelMock).toHaveBeenCalledWith(expect.objectContaining({
         tags: { environment: 'dev', team: 'ai' },
@@ -84,7 +84,7 @@ describe('creates.create_integrated_index', () => {
       }));
     });
 
-    it('should create an integrated index with wait_until_ready', async () => {
+    it('should create an index with wait_until_ready', async () => {
       const bundle = {
         ...baseBundle,
         inputData: {
@@ -103,7 +103,7 @@ describe('creates.create_integrated_index', () => {
       });
       vi.spyOn(Pinecone.prototype, 'createIndexForModel').mockImplementation(createIndexForModelMock);
 
-      const result = await appTester(App.creates.create_integrated_index!.operation.perform, bundle);
+      const result = await appTester(App.creates.create_index!.operation.perform as any, bundle);
 
       expect(createIndexForModelMock).toHaveBeenCalledWith(expect.objectContaining({
         waitUntilReady: true,

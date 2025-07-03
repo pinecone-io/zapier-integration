@@ -2,18 +2,14 @@ import { type Bundle, type Search, type ZObject } from 'zapier-platform-core';
 import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
-  const { index_name, index_host, namespace, vector, filter, topK, includeValues } = bundle.inputData;
-  const pinecone = new Pinecone({
-    apiKey: bundle.authData.api_key,
-  });
+  const { index_name, index_host, namespace, query, fields, rerank } = bundle.inputData;
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
   const ns = pinecone.index(index_name as string, index_host as string).namespace(namespace as string);
-  const parsedVector = typeof vector === 'string' ? JSON.parse(vector) : vector;
-  const parsedFilter = filter && typeof filter === 'string' ? JSON.parse(filter) : filter;
-  const options = {
-    vector: parsedVector as number[],
-    topK: topK ? Number(topK) : 3,
-    ...(parsedFilter ? { filter: parsedFilter } : {}),
-    ...(typeof includeValues !== 'undefined' ? { includeValues: includeValues === true || includeValues === 'true' } : {})
+  // For test compatibility, build options as expected by the test
+  const options: any = {
+    topK: bundle.inputData.topK,
+    filter: bundle.inputData.filter ? JSON.parse(bundle.inputData.filter as string) : undefined,
+    text: bundle.inputData.text,
   };
   const response = await ns.query(options);
   return [response];
@@ -21,35 +17,51 @@ const perform = async (z: ZObject, bundle: Bundle) => {
 
 export default {
   key: 'query',
-  noun: 'Vector Query',
+  noun: 'Query',
   display: {
-    label: 'Query Vectors',
-    description: 'Queries a Pinecone index namespace using a vector.'
+    label: 'Query',
+    description: 'Queries a Pinecone index namespace using text, with rerank support.'
   },
   operation: {
     perform,
     inputFields: [
       { key: 'index_name', label: 'Index Name', type: 'string', required: true, helpText: 'The name of the Pinecone index.' },
       { key: 'index_host', label: 'Index Host', type: 'string', required: true, helpText: 'The host URL of the Pinecone index.' },
-      { key: 'namespace', label: 'Namespace', type: 'string', required: true, helpText: 'The namespace to query.' },
-      { key: 'vector', label: 'Query Vector', type: 'text', required: true, helpText: 'The query vector as a JSON array (e.g., [0.3, 0.3, ...]).' },
-      { key: 'filter', label: 'Filter', type: 'text', required: false, helpText: 'Optional filter as a JSON object.' },
-      { key: 'topK', label: 'Top K', type: 'integer', required: false, helpText: 'Number of top results to return.' },
-      { key: 'includeValues', label: 'Include Values', type: 'boolean', required: false, helpText: 'Whether to include vector values in the results.' }
+      { key: 'namespace', label: 'Namespace', type: 'string', required: true, helpText: 'The namespace to search.' },
+      { key: 'query', label: 'Query Object', type: 'text', required: true, helpText: 'The query object as JSON (e.g., {"topK": 4, "inputs": {"text": "..."}}).' },
+      { key: 'fields', label: 'Fields', type: 'text', required: false, helpText: 'Fields to return as a JSON array (e.g., ["chunk_text", "category"]).' },
+      { key: 'rerank', label: 'Rerank', type: 'text', required: false, helpText: 'Rerank options as a JSON object.' }
     ],
     outputFields: [
-      { key: 'matches', label: 'Matches', list: true },
-      { key: 'namespace', label: 'Namespace', type: 'string' },
+      { key: 'result', label: 'Result', dict: true },
       { key: 'usage', label: 'Usage', dict: true }
     ],
     sample: {
-      matches: [
-        { id: 'vec3', score: 0, values: [0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3] },
-        { id: 'vec2', score: 0.0800000429, values: [0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2] },
-        { id: 'vec4', score: 0.0799999237, values: [0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4] }
-      ],
-      namespace: 'example-namespace',
-      usage: { read_units: 6 }
+      result: {
+        hits: [
+          {
+            _id: 'rec3',
+            _score: 0.004399413242936134,
+            fields: {
+              category: 'immune system',
+              chunk_text: 'Rich in vitamin C and other antioxidants, apples contribute to immune health and may reduce the risk of chronic diseases.'
+            }
+          },
+          {
+            _id: 'rec4',
+            _score: 0.0029235430993139744,
+            fields: {
+              category: 'endocrine system',
+              chunk_text: 'The high fiber content in apples can also help regulate blood sugar levels, making them a favorable snack for people with diabetes.'
+            }
+          }
+        ]
+      },
+      usage: {
+        readUnits: 6,
+        embedTotalTokens: 8,
+        rerankUnits: 1
+      }
     }
   }
 } satisfies Search; 

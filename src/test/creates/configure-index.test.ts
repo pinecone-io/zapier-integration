@@ -43,7 +43,7 @@ describe('creates.configure_index', () => {
       });
       vi.spyOn(Pinecone.prototype, 'configureIndex').mockImplementation(configureIndexMock);
 
-      const result = await appTester(App.creates.configure_index!.operation.perform, bundle);
+      const result = await appTester(App.creates.configure_index!.operation.perform as any, bundle);
 
       expect(configureIndexMock).toHaveBeenCalledWith('test-index', expect.objectContaining({
         pod_type: 'p1.x2',
@@ -75,7 +75,7 @@ describe('creates.configure_index', () => {
       });
       vi.spyOn(Pinecone.prototype, 'configureIndex').mockImplementation(configureIndexMock);
 
-      const result = await appTester(App.creates.configure_index!.operation.perform, bundle);
+      const result = await appTester(App.creates.configure_index!.operation.perform as any, bundle);
 
       expect(configureIndexMock).toHaveBeenCalledWith('test-index', expect.objectContaining({
         tags: { environment: 'production', example: 'tag' },
@@ -103,7 +103,7 @@ describe('creates.configure_index', () => {
       });
       vi.spyOn(Pinecone.prototype, 'configureIndex').mockImplementation(configureIndexMock);
 
-      const result = await appTester(App.creates.configure_index!.operation.perform, bundle);
+      const result = await appTester(App.creates.configure_index!.operation.perform as any, bundle);
 
       expect(configureIndexMock).toHaveBeenCalledWith('test-index', expect.objectContaining({
         embed: { model: 'llama-text-embed-v2', fieldMap: { text: 'chunk_text' } },

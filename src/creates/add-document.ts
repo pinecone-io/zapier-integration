@@ -1,0 +1,84 @@
+import { type Bundle, type Create, type ZObject } from 'zapier-platform-core';
+import { Pinecone } from '@pinecone-database/pinecone';
+
+const perform = async (z: ZObject, bundle: Bundle) => {
+  const { document, metadata, index_name, index_host, namespace, model } = bundle.inputData;
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
+  // Ensure document is a string
+  const docText = typeof document === 'string' ? document : String(document);
+  // Embed the document
+  const embedResponse = await pinecone.inference.embed(model as string, [docText], {});
+  // Handle both dense and sparse embeddings
+  let values: number[] = [];
+  const embedding = embedResponse.data[0];
+  if (embedding && Array.isArray((embedding as any).values)) {
+    values = (embedding as any).values;
+  } else if (embedding && (embedding as any).indices && (embedding as any).values) {
+    // Sparse embedding: convert to dense if needed, or store as-is
+    // For now, just flatten values (advanced: handle sparse properly)
+    values = (embedding as any).values;
+  } else {
+    throw new Error('Embedding response did not contain values array.');
+  }
+  // Generate a UUID for the vector
+  function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  const id = bundle.inputData.document_id ? String(bundle.inputData.document_id) : uuidv4();
+  // Parse metadata if provided
+  let meta = undefined;
+  if (metadata && typeof metadata === 'string') {
+    try {
+      meta = JSON.parse(metadata);
+    } catch {
+      meta = { value: metadata };
+    }
+  } else if (metadata && typeof metadata === 'object') {
+    meta = metadata;
+  }
+  // Upsert the vector
+  const ns = pinecone.index(index_name as string, index_host as string).namespace(namespace as string);
+  await ns.upsert([{ id, values, metadata: meta }]);
+  return { id, status: 'upserted', index: index_name, namespace };
+};
+
+export default {
+  key: 'add_document',
+  noun: 'Document',
+  display: {
+    label: 'Add Document',
+    description: 'Embeds a document and upserts it to Pinecone in one step.'
+  },
+  operation: {
+    perform,
+    inputFields: [
+      { key: 'document', label: 'Document Text', type: 'text', required: true, helpText: 'The text of the document to add.' },
+      { key: 'document_id', label: 'Document ID', type: 'string', required: false, helpText: 'Optional. Provide a unique ID to reference this document for future updates or deletions. If not provided, a UUID will be generated. You will need this ID to update or delete the document later.' },
+      { key: 'metadata', label: 'Metadata', type: 'text', required: false, helpText: 'Optional metadata as a JSON object or string.' },
+      { key: 'model', label: 'Embedding Model', type: 'string', required: true, helpText: 'The embedding model to use.',
+        choices: [
+          'llama-text-embed-v2',
+          'multilingual-e5-large',
+          'pinecone-sparse-english-v0',
+        ] },
+      { key: 'index_name', label: 'Index Name', type: 'string', required: true, helpText: 'The name of the Pinecone index.' },
+      { key: 'index_host', label: 'Index Host', type: 'string', required: true, helpText: 'The host URL of the Pinecone index.' },
+      { key: 'namespace', label: 'Namespace', type: 'string', required: true, helpText: 'The namespace to upsert the document into.' },
+    ],
+    outputFields: [
+      { key: 'id', label: 'Vector ID', type: 'string' },
+      { key: 'status', label: 'Status', type: 'string' },
+      { key: 'index', label: 'Index', type: 'string' },
+      { key: 'namespace', label: 'Namespace', type: 'string' },
+    ],
+    sample: {
+      id: 'uuid',
+      status: 'upserted',
+      index: 'example-index',
+      namespace: 'default',
+    }
+  }
+} satisfies Create; 
