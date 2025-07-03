@@ -4,22 +4,6 @@ import { Pinecone } from '@pinecone-database/pinecone';
 const perform = async (z: ZObject, bundle: Bundle) => {
   const { document, metadata, index_name, index_host, namespace, model } = bundle.inputData;
   const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
-  // Ensure document is a string
-  const docText = typeof document === 'string' ? document : String(document);
-  // Embed the document
-  const embedResponse = await pinecone.inference.embed(model as string, [docText], {});
-  // Handle both dense and sparse embeddings
-  let values: number[] = [];
-  const embedding = embedResponse.data[0];
-  if (embedding && Array.isArray((embedding as any).values)) {
-    values = (embedding as any).values;
-  } else if (embedding && (embedding as any).indices && (embedding as any).values) {
-    // Sparse embedding: convert to dense if needed, or store as-is
-    // For now, just flatten values (advanced: handle sparse properly)
-    values = (embedding as any).values;
-  } else {
-    throw new Error('Embedding response did not contain values array.');
-  }
   // Generate a UUID for the vector
   function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -28,6 +12,7 @@ const perform = async (z: ZObject, bundle: Bundle) => {
     });
   }
   const id = bundle.inputData.document_id ? String(bundle.inputData.document_id) : uuidv4();
+  const chunk_text = (bundle.inputData.document as string).split('\n').map(line => line.trim()).filter(line => line.length > 0);
   // Parse metadata if provided
   let meta = undefined;
   if (metadata && typeof metadata === 'string') {
@@ -41,7 +26,7 @@ const perform = async (z: ZObject, bundle: Bundle) => {
   }
   // Upsert the vector
   const ns = pinecone.index(index_name as string, index_host as string).namespace(namespace as string);
-  await ns.upsert([{ id, values, metadata: meta }]);
+  await ns.upsertRecords([{ id, chunk_text, metadata: meta }]);
   return { id, status: 'upserted', index: index_name, namespace };
 };
 
@@ -58,14 +43,8 @@ export default {
       { key: 'document', label: 'Document Text', type: 'text', required: true, helpText: 'The text of the document to add.' },
       { key: 'document_id', label: 'Document ID', type: 'string', required: false, helpText: 'Optional. Provide a unique ID to reference this document for future updates or deletions. If not provided, a UUID will be generated. You will need this ID to update or delete the document later.' },
       { key: 'metadata', label: 'Metadata', type: 'text', required: false, helpText: 'Optional metadata as a JSON object or string.' },
-      { key: 'model', label: 'Embedding Model', type: 'string', required: true, helpText: 'The embedding model to use.',
-        choices: [
-          'llama-text-embed-v2',
-          'multilingual-e5-large',
-          'pinecone-sparse-english-v0',
-        ] },
       { key: 'index_name', label: 'Index Name', type: 'string', required: true, helpText: 'The name of the Pinecone index.' },
-      { key: 'index_host', label: 'Index Host', type: 'string', required: true, helpText: 'The host URL of the Pinecone index.' },
+      { key: 'index_host', label: 'Index Host', type: 'string', required: false, helpText: 'The host URL of the Pinecone index. Adding this will speed up the operation.' },
       { key: 'namespace', label: 'Namespace', type: 'string', required: true, helpText: 'The namespace to upsert the document into.' },
     ],
     outputFields: [

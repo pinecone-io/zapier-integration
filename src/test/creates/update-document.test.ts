@@ -69,7 +69,8 @@ describe('creates.update_document', () => {
         index_host: 'host',
         namespace: 'default',
         document_id: 'doc-123',
-        metadata: '{"foo":"baz"}'
+        metadata: '{"foo":"baz"}',
+        model: 'llama-text-embed-v2',
       },
     } satisfies Bundle;
 
@@ -88,6 +89,7 @@ describe('creates.update_document', () => {
         index_host: 'host',
         namespace: 'default',
         document_id: 'doc-123',
+        model: 'llama-text-embed-v2',
       },
     } satisfies Bundle;
 

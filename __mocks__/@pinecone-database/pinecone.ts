@@ -56,6 +56,7 @@ export class Pinecone {
     return {
       namespace: vi.fn().mockReturnValue({
         upsert: vi.fn(),
+        upsertRecords: vi.fn(),
         update: vi.fn(),
         deleteOne: vi.fn(),
       })

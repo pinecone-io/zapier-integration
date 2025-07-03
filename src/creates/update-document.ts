@@ -17,6 +17,16 @@ const perform = async (z: ZObject, bundle: Bundle) => {
   } else if (metadata && typeof metadata === 'object') {
     meta = metadata;
   }
+  let model_name = bundle.inputData.model;
+  if (!model_name) {
+    const index_info = await pinecone.describeIndex(index_name as string)
+    if (!index_info?.embed) {
+      throw new Error('No embedding model found for index.');
+    }
+    model_name = index_info.embed.model;
+  } else {
+    model_name = model_name as string;
+  }
   let values: number[] | undefined = undefined;
   if (document) {
     const docText = typeof document === 'string' ? document : String(document);
@@ -53,12 +63,7 @@ export default {
     inputFields: [
       { key: 'document_id', label: 'Document ID', type: 'string', required: true, helpText: 'The ID of the document to update. This is the ID returned by Add Document or the one you provided.' },
       { key: 'document', label: 'New Document Text', type: 'text', required: false, helpText: 'Optional. Provide new text to update the document. If provided, new embeddings will be generated.' },
-      { key: 'model', label: 'Embedding Model', type: 'string', required: false, helpText: 'Required if updating the document text.',
-        choices: [
-          'llama-text-embed-v2',
-          'multilingual-e5-large',
-          'pinecone-sparse-english-v0',
-        ] },
+      { key: 'model', label: 'Embedding Model', type: 'string', required: false, helpText: 'Required if updating the document text. Only required if the index was created with a different model than the default. If not provided, the model used for the index will be used.' },
       { key: 'metadata', label: 'New Metadata', type: 'text', required: false, helpText: 'Optional. Provide new metadata as a JSON object or string.' },
       { key: 'index_name', label: 'Index Name', type: 'string', required: true, helpText: 'The name of the Pinecone index.' },
       { key: 'index_host', label: 'Index Host', type: 'string', required: true, helpText: 'The host URL of the Pinecone index.' },

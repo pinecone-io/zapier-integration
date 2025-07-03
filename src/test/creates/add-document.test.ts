@@ -9,19 +9,16 @@ import App from '../../index';
 const appTester = zapier.createAppTester(App);
 
 describe('creates.add_document', () => {
-  let embedMock: ReturnType<typeof vi.fn>;
-  let upsertMock: ReturnType<typeof vi.fn>;
+  let upsertRecordsMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.restoreAllMocks();
-    embedMock = vi.fn();
-    upsertMock = vi.fn();
+    upsertRecordsMock = vi.fn();
     // The namespace function should return an object with upsert: upsertMock
-    const namespaceObj = { upsert: upsertMock };
+    const namespaceObj = { upsertRecords: upsertRecordsMock };
     const indexMock = vi.fn().mockReturnValue({ namespace: vi.fn().mockReturnValue(namespaceObj) });
     __setPineconeMockState({
       inference: {
-        embed: embedMock,
         getModel: vi.fn(),
         listModels: vi.fn(),
         rerank: vi.fn(),
@@ -53,12 +50,10 @@ describe('creates.add_document', () => {
       },
     } satisfies Bundle;
 
-    embedMock.mockResolvedValue({ data: [{ values: [0.1, 0.2, 0.3] }] });
-    upsertMock.mockResolvedValue({ upsertedCount: 1 });
+    upsertRecordsMock.mockResolvedValue({ upsertedCount: 1 });
 
     const result = await appTester((App.creates.add_document!.operation.perform as any), bundle) as any;
-    expect(embedMock).toHaveBeenCalled();
-    expect(upsertMock).toHaveBeenCalled();
+    expect(upsertRecordsMock).toHaveBeenCalled();
     expect(result.id).toBe('doc-123');
   });
 
@@ -75,12 +70,10 @@ describe('creates.add_document', () => {
       },
     } satisfies Bundle;
 
-    embedMock.mockResolvedValue({ data: [{ values: [0.1, 0.2, 0.3] }] });
-    upsertMock.mockResolvedValue({ upsertedCount: 1 });
+    upsertRecordsMock.mockResolvedValue({ upsertedCount: 1 });
 
     const result = await appTester((App.creates.add_document!.operation.perform as any), bundle) as any;
-    expect(embedMock).toHaveBeenCalled();
-    expect(upsertMock).toHaveBeenCalled();
+    expect(upsertRecordsMock).toHaveBeenCalled();
     expect(result.id).toBeDefined();
   });
 }); 
