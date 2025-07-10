@@ -1,6 +1,6 @@
 {
   "name": "pinecone",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Vector database for AI applications with semantic search and retrieval capabilities",
   "main": "./dist/index.js",
   "scripts": {
@@ -11,9 +11,11 @@
     "bootstrap": "lerna bootstrap --scope=$npm_package_name"
   },
   "dependencies": {
+    "@pinecone-database/pinecone": "^6.1.1",
     "zapier-platform-core": "17.2.0"
   },
   "devDependencies": {
+    "@types/node-fetch": "^2.6.12",
     "nock": "^14.0.5",
     "rimraf": "^5.0.10",
     "typescript": "5.6.2",

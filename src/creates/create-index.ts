@@ -1,132 +1,39 @@
 import { type Bundle, type Create, type ZObject } from 'zapier-platform-core';
-
-import { API_URL } from '../constants';
-
-interface ServerlessSpec {
-  serverless: {
-    cloud: 'aws' | 'gcp' | 'azure';
-    region: string;
-  };
-}
-
-interface PodSpec {
-  pod: {
-    environment: string;
-    pod_type: string;
-    pods?: number;
-    replicas?: number;
-    shards?: number;
-  };
-}
-
-interface ByocSpec {
-  byoc: {
-    environment: string;
-  };
-}
-
-interface CreateIndexRequest {
-  name: string;
-  dimension: number;
-  metric: 'cosine' | 'euclidean' | 'dotproduct';
-  spec: ServerlessSpec | PodSpec | ByocSpec;
-  deletion_protection?: 'enabled' | 'disabled';
-  tags?: Record<string, string>;
-}
-
-interface PineconeIndex {
-  name: string;
-  metric: string;
-  dimension: number;
-  status: {
-    ready: boolean;
-    state: string;
-  };
-  host: string;
-  spec: ServerlessSpec | PodSpec | ByocSpec;
-  deletion_protection: string;
-  tags: Record<string, string>;
-  vector_type: string;
-}
+import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
   const {
     name,
-    dimension,
-    metric,
-    spec_type,
     cloud,
     region,
-    environment,
-    pod_type,
-    pods,
-    replicas,
-    shards,
+    model,
+    field_map,
+    wait_until_ready,
     deletion_protection,
     tags,
   } = bundle.inputData;
 
-  let spec: ServerlessSpec | PodSpec | ByocSpec;
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
 
-  if (spec_type === 'serverless') {
-    spec = {
-      serverless: {
-        cloud: cloud as 'aws' | 'gcp' | 'azure',
-        region: region as string,
-      },
-    };
-    // Manually validate region because it's not a required field.
-    if (!region) {
-      throw new Error('Region is required for serverless indexes');
-    }
-  } else if (spec_type === 'pod') {
-    const podConfig: {
-      environment: string;
-      pod_type: string;
-      pods?: number;
-      replicas?: number;
-      shards?: number;
-    } = {
-      environment: environment as string,
-      pod_type: pod_type as string,
-    };
-
-    if (pods) podConfig.pods = parseInt(pods as string, 10);
-    if (replicas) podConfig.replicas = parseInt(replicas as string, 10);
-    if (shards) podConfig.shards = parseInt(shards as string, 10);
-
-    spec = { pod: podConfig };
-  } else {
-    // BYOC
-    spec = {
-      byoc: {
-        environment: environment as string,
-      },
-    };
-  }
-
-  const requestBody: CreateIndexRequest = {
+  const createIndexParams: any = {
     name: name as string,
-    dimension: parseInt(dimension as string, 10),
-    metric: metric as 'cosine' | 'euclidean' | 'dotproduct',
-    spec,
+    cloud: cloud as 'aws' | 'gcp' | 'azure',
+    region: region as string,
+    embed: {
+      model: model as string,
+      fieldMap: JSON.parse(field_map as string),
+    },
+    waitUntilReady: wait_until_ready as boolean,
+    deletionProtection: deletion_protection as 'enabled' | 'disabled',
   };
-
-  if (deletion_protection) {
-    requestBody.deletion_protection = deletion_protection as 'enabled' | 'disabled';
+  if (typeof tags === 'string' && tags.trim()) {
+    createIndexParams.tags = JSON.parse(tags);
   }
-
-  if (tags) {
-    requestBody.tags = JSON.parse(tags as string);
+  const result = await pinecone.createIndexForModel(createIndexParams);
+  if (result && typeof result === 'object') {
+    return { ...result, name, status: 'created' };
   }
-
-  const response = await z.request<PineconeIndex>({
-    url: `${API_URL}/indexes`,
-    method: 'POST',
-    body: requestBody,
-  });
-
-  return response.data;
+  return { name, status: 'created' };
 };
 
 export default {
@@ -147,30 +54,6 @@ export default {
         required: true,
       },
       {
-        key: 'dimension',
-        label: 'Dimension',
-        type: 'integer',
-        helpText:
-          'The dimension of vectors to be stored in the index. Must be **between 1 and 20000**.',
-        required: true,
-      },
-      {
-        key: 'metric',
-        label: 'Metric',
-        type: 'string',
-        helpText: 'The distance metric used to calculate similarity between vectors.',
-        required: true,
-        choices: ['cosine', 'euclidean', 'dotproduct'],
-      },
-      {
-        key: 'spec_type',
-        label: 'Spec Type',
-        type: 'string',
-        helpText: 'The type of index configuration.',
-        required: true,
-        choices: ['serverless', 'pod', 'byoc'],
-      },
-      {
         key: 'cloud',
         label: 'Cloud Provider',
         type: 'string',
@@ -186,38 +69,29 @@ export default {
         required: false,
       },
       {
-        key: 'environment',
-        label: 'Environment',
+        key: 'model',
+        label: 'Model',
         type: 'string',
-        helpText: 'The environment for pod-based or BYOC indexes.',
-        required: false,
+        helpText: 'The model to use for the index.',
+        required: true,
+        choices: [
+          'llama-text-embed-v2',
+          'multilingual-e5-large',
+          'pinecone-sparse-english-v0',
+        ]
       },
       {
-        key: 'pod_type',
-        label: 'Pod Type',
-        type: 'string',
-        helpText: 'The type of pod for pod-based indexes (e.g., p1.x1).',
-        required: false,
+        key: 'field_map',
+        label: 'Field Map',
+        type: 'text',
+        helpText: 'The field map for the index as a JSON object (e.g., {"text": "myField"}).',
+        required: true,
       },
       {
-        key: 'pods',
-        label: 'Number of Pods',
-        type: 'integer',
-        helpText: 'The number of pods for pod-based indexes.',
-        required: false,
-      },
-      {
-        key: 'replicas',
-        label: 'Number of Replicas',
-        type: 'integer',
-        helpText: 'The number of replicas for pod-based indexes.',
-        required: false,
-      },
-      {
-        key: 'shards',
-        label: 'Number of Shards',
-        type: 'integer',
-        helpText: 'The number of shards for pod-based indexes.',
+        key: 'wait_until_ready',
+        label: 'Wait Until Ready',
+        type: 'boolean',
+        helpText: 'Whether to wait until the index is ready.',
         required: false,
       },
       {
@@ -226,7 +100,6 @@ export default {
         type: 'string',
         helpText: 'Whether to enable deletion protection for the index.',
         required: false,
-        choices: ['enabled', 'disabled'],
       },
       {
         key: 'tags',
@@ -238,37 +111,50 @@ export default {
     ],
     outputFields: [
       { key: 'name', label: 'Name', type: 'string', primary: true },
-      { key: 'metric', label: 'Metric', type: 'string' },
       { key: 'dimension', label: 'Dimension', type: 'integer' },
-      { key: 'vector_type', label: 'Vector Type', type: 'string' },
-      { key: 'status', label: 'Status', dict: true },
-      { key: 'status__ready', label: 'Ready', type: 'boolean' },
-      { key: 'status__state', label: 'State', type: 'string' },
+      { key: 'metric', label: 'Metric', type: 'string' },
       { key: 'host', label: 'Host', type: 'string' },
-      { key: 'spec', label: 'Spec', dict: true },
-      { key: 'deletion_protection', label: 'Deletion Protection', type: 'string' },
+      { key: 'deletionProtection', label: 'Deletion Protection', type: 'string' },
       { key: 'tags', label: 'Tags', dict: true },
+      { key: 'vectorType', label: 'Vector Type', type: 'string' },
+      { key: 'embed', label: 'Embed', dict: true },
+      { key: 'embed.model', label: 'Embed Model', type: 'string' },
+      { key: 'embed.metric', label: 'Embed Metric', type: 'string' },
+      { key: 'embed.dimension', label: 'Embed Dimension', type: 'integer' },
+      { key: 'embed.vectorType', label: 'Embed Vector Type', type: 'string' },
+      { key: 'embed.fieldMap', label: 'Embed Field Map', dict: true },
+      { key: 'embed.readParameters', label: 'Embed Read Parameters', dict: true },
+      { key: 'embed.readParameters.input_type', label: 'Embed Read Parameters Input Type', type: 'string' },
+      { key: 'embed.readParameters.truncate', label: 'Embed Read Parameters Truncate', type: 'string' },
+      { key: 'embed.writeParameters', label: 'Embed Write Parameters', dict: true },
+      { key: 'embed.writeParameters.input_type', label: 'Embed Write Parameters Input Type', type: 'string' },
+      { key: 'embed.writeParameters.truncate', label: 'Embed Write Parameters Truncate', type: 'string' },
+      { key: 'spec', label: 'Spec', dict: true },
+      { key: 'spec.serverless.cloud', label: 'Cloud', type: 'string' },
+      { key: 'spec.serverless.region', label: 'Region', type: 'string' },
+      { key: 'status', label: 'Status', dict: true },
+      { key: 'status.ready', label: 'Ready', type: 'boolean' },
+      { key: 'status.state', label: 'State', type: 'string' }
     ],
     sample: {
-      name: 'example-index',
+      name: 'integrated-dense-js',
+      dimension: 1024,
       metric: 'cosine',
-      dimension: 1536,
-      vector_type: 'dense',
-      status: {
-        ready: true,
-        state: 'Ready',
+      host: 'integrated-dense-js-govk0nt.svc.aped-4627-b74a.pinecone.io',
+      deletionProtection: 'disabled',
+      tags: undefined,
+      embed: {
+        model: 'llama-text-embed-v2',
+        metric: 'cosine',
+        dimension: 1024,
+        vectorType: 'dense',
+        fieldMap: { text: 'chunk_text' },
+        readParameters: { input_type: 'query', truncate: 'END' },
+        writeParameters: { input_type: 'passage', truncate: 'END' }
       },
-      host: 'example-index-abc123.svc.us-east-1-aws.pinecone.io',
-      spec: {
-        serverless: {
-          cloud: 'aws',
-          region: 'us-east-1',
-        },
-      },
-      deletion_protection: 'disabled',
-      tags: {
-        environment: 'production',
-      },
-    },
+      spec: { pod: undefined, serverless: { cloud: 'aws', region: 'us-east-1' } },
+      status: { ready: true, state: 'Ready' },
+      vectorType: 'dense'
+    }
   },
 } satisfies Create;

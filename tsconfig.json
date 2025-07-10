@@ -1,3 +1,14 @@
 {
-  "extends": ["../tsconfig.ts.json"]
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/test/types"
+    ],
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["__mocks__/**/*", "src/test/**/*"]
 }
