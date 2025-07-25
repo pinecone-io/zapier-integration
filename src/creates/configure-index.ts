@@ -52,7 +52,7 @@ export default {
       { key: 'deletion_protection', label: 'Deletion Protection', type: 'string', required: false, choices: ['enabled', 'disabled'], helpText: 'Enable or disable deletion protection.' },
       { key: 'tags', label: 'Tags', type: 'text', required: false, helpText: 'Tags as JSON object (e.g., {"environment": "production", "example": "tag"}).' },
       { key: 'embed_model', label: 'Embed Model', type: 'string', required: false, helpText: 'The embedding model to use for integrated indexes.' },
-      { key: 'embed_field_map', label: 'Embed Field Map', type: 'text', required: false, helpText: 'Field map for the embed model as a JSON object (e.g., {"text": "chunk_text"}).' }
+      { key: 'embed_field_map', label: 'Embed Field Map', type: 'text', required: false, helpText: 'Field map for the embed model as a JSON object (e.g., {"text": "text"}).' }
     ],
     outputFields: [
       { key: 'name', label: 'Name', type: 'string', primary: true },

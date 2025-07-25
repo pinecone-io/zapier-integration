@@ -36,7 +36,9 @@ describe('searches.describe_index', () => {
         host: 'test-index-host',
         deletionProtection: 'disabled',
         tags: { environment: 'dev' },
-        embed: undefined,
+        embed: {
+          model: 'pinecone-text-embed-v0',
+        },
         spec: { pod: undefined, serverless: { cloud: 'aws', region: 'us-east-1' } },
         status: { ready: true, state: 'Ready' },
         vectorType: 'dense',

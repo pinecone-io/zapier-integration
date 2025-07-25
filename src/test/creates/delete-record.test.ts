@@ -6,7 +6,7 @@ import App from '../../index';
 
 const appTester = zapier.createAppTester(App);
 
-describe('creates.delete_document', () => {
+describe('creates.delete_record', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -20,14 +20,14 @@ describe('creates.delete_document', () => {
     inputDataRaw: {},
   } satisfies Bundle;
 
-  it('should delete a document by document ID', async () => {
+  it('should delete a record by record ID', async () => {
     const bundle = {
       ...baseBundle,
       inputData: {
         index_name: 'test-index',
         index_host: 'host',
         namespace: 'default',
-        document_id: 'doc-123',
+        record_id: 'doc-123',
       },
     } satisfies Bundle;
 
@@ -35,7 +35,7 @@ describe('creates.delete_document', () => {
     const namespaceMock = vi.fn().mockReturnValue({ deleteOne: deleteOneMock });
     vi.spyOn(Pinecone.prototype, 'index').mockReturnValue({ namespace: namespaceMock } as any);
 
-    const result = await appTester((App.creates.delete_document!.operation.perform as any), bundle) as any;
+    const result = await appTester((App.creates.delete_record!.operation.perform as any), bundle) as any;
     expect(deleteOneMock).toHaveBeenCalled();
     expect(result.id).toBe('doc-123');
   });
@@ -47,7 +47,7 @@ describe('creates.delete_document', () => {
         index_name: 'test-index',
         index_host: 'host',
         namespace: 'default',
-        document_id: 'doc-123',
+        record_id: 'doc-123',
       },
     } satisfies Bundle;
 
@@ -55,6 +55,6 @@ describe('creates.delete_document', () => {
     const namespaceMock = vi.fn().mockReturnValue({ deleteOne: deleteOneMock });
     vi.spyOn(Pinecone.prototype, 'index').mockReturnValue({ namespace: namespaceMock } as any);
 
-    await expect(appTester((App.creates.delete_document!.operation.perform as any), bundle)).rejects.toThrow('Delete failed');
+    await expect(appTester((App.creates.delete_record!.operation.perform as any), bundle)).rejects.toThrow('Delete failed');
   });
 }); 
