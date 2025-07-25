@@ -15,7 +15,7 @@ const perform = async (z: ZObject, bundle: Bundle) => {
     },
     rerank: {
       model: rerankModel,
-      rankFields: ['text'],
+      rankFields: [bundle.inputData.rank_field || 'text'],
     },
   });
 
