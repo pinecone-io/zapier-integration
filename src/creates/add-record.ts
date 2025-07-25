@@ -2,7 +2,7 @@ import { type Bundle, type Create, type ZObject } from 'zapier-platform-core';
 import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
-  const { chunk_text, record_metadata, index_name, index_host, namespace } = bundle.inputData;
+  const { record, record_metadata, index_name, index_host, namespace } = bundle.inputData;
   const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
   // Generate a UUID for the vector
   function uuidv4() {
@@ -12,11 +12,9 @@ const perform = async (z: ZObject, bundle: Bundle) => {
     });
   }
   const id = bundle.inputData.record_id ? String(bundle.inputData.record_id) : uuidv4();
-  // Access record_metadata as a dictionary
-  const metadata = bundle.inputData.record_metadata as Record<string, any>;
   // Validate metadata values
-  for (const key in metadata) {
-    const value = metadata[key];
+  for (const key in record_metadata as Record<string, any>) {
+    const value = record_metadata[key];
     if (
       typeof value !== 'string' &&
       typeof value !== 'number' &&
@@ -29,7 +27,7 @@ const perform = async (z: ZObject, bundle: Bundle) => {
 
   // Upsert the vector with spread metadata
   const ns = pinecone.index(index_name as string, index_host as string).namespace(namespace as string);
-  await ns.upsertRecords([{ id, chunk_text: String(bundle.inputData.chunk_text).trim(), ...metadata }]);
+  await ns.upsertRecords([{ id, text: String(record).trim(), ...(record_metadata as Record<string, any>) }]);
   return { id, status: 'upserted', index: index_name, namespace };
 };
 
@@ -43,7 +41,7 @@ export default {
   operation: {
     perform,
     inputFields: [
-      { key: 'chunk_text', label: 'Record Text', type: 'text', required: true, helpText: 'The text of the record to add.' },
+      { key: 'record', label: 'Record Text', type: 'text', required: true, helpText: 'The text of the record to add.' },
       { key: 'record_id', label: 'Record ID', type: 'string', required: false, helpText: 'Optional. Provide a unique ID to reference this record for future updates or deletions. If not provided, a UUID will be generated. You will need this ID to update or delete the record later.' },
       { key: 'record_metadata', label: 'Metadata', required: false, helpText: 'Optional metadata as key-value pairs.', "dict": true },
       { key: 'index_name', label: 'Index Name', type: 'string', required: true, helpText: 'The name of the Pinecone index.' },

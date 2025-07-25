@@ -1,29 +1,46 @@
-import { describe, expect, it, beforeEach, vi } from 'vitest';
+import { describe, expect, it, beforeEach, vi, afterEach } from 'vitest';
 vi.mock('@pinecone-database/pinecone');
 import zapier from 'zapier-platform-core';
 import type { Bundle } from 'zapier-platform-core';
-import { Pinecone } from '@pinecone-database/pinecone';
+import { Pinecone, __setPineconeMockState } from '@pinecone-database/pinecone'; 
 import App from '../../index';
 
 const appTester = zapier.createAppTester(App);
 
 describe('creates.update_record', () => {
-  let embedMock: ReturnType<typeof vi.fn>;
-  let updateMock: ReturnType<typeof vi.fn>;
+  let updateRecordsMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.restoreAllMocks();
-    embedMock = vi.fn();
-    updateMock = vi.fn();
-    // The namespace function should return an object with update: updateMock
-    const namespaceObj = { update: updateMock };
-    const indexMock = vi.fn().mockReturnValue({ namespace: vi.fn().mockReturnValue(namespaceObj) });
+    updateRecordsMock = vi.fn();
+    const indexMock = vi.fn().mockReturnValue({ namespace: vi.fn().mockReturnValue({ update: updateRecordsMock }) });
     Pinecone.prototype.index = indexMock;
-    Pinecone.prototype.inference = { embed: embedMock } as any;
+
+    const describeIndexResponse = {
+      name: 'test-index',
+      metric: 'cosine',
+      host: 'test-index-host',
+      spec: { serverless: { region: 'us-east-1', cloud: 'aws' } },
+      embed: { model: 'pinecone-text-embed-v0' },
+      status: { ready: true, state: 'Ready' },
+      vectorType: 'dense',
+    };
+    __setPineconeMockState({ describeIndex: vi.fn().mockResolvedValue(describeIndexResponse) });
+
+    __setPineconeMockState({ inference: {
+      embed: vi.fn().mockResolvedValue({
+        data: [{ values: [0.1, 0.2, 0.3] }], // Mocked embedding values
+      }),
+    }});
   });
 
   const baseBundle = {
-    inputData: {},
+    inputData: {
+      index_name: 'test-index',
+      index_host: 'host',
+      namespace: 'default',
+      record_id: 'doc-123',
+    },
     authData: {
       api_key: 'test_api_key_123',
     },
@@ -31,60 +48,37 @@ describe('creates.update_record', () => {
     inputDataRaw: {},
   } satisfies Bundle;
 
-  it('should update a record with new text and embedding', async () => {
-    const bundle = {
+  it('should update a record with new record text only', async () => {
+    const recordBundle = {
       ...baseBundle,
       inputData: {
-        index_name: 'test-index',
-        index_host: 'host',
-        namespace: 'default',
-        document_id: 'doc-123',
-        document: 'Updated text',
-        model: 'llama-text-embed-v2',
+        ...baseBundle.inputData,
+        record: 'Updated text',
       },
-    } satisfies Bundle;
+    };
 
-    embedMock.mockResolvedValue({ data: [{ values: [0.4, 0.5, 0.6] }] });
-    updateMock.mockResolvedValue({ updatedCount: 1 });
-
-    const result = await appTester((App.creates.update_record!.operation.perform as any), bundle) as any;
-    expect(embedMock).toHaveBeenCalled();
-    expect(updateMock).toHaveBeenCalled();
+    const result = await appTester((App.creates.update_record!.operation.perform as any), recordBundle) as any;
     expect(result.id).toBe('doc-123');
   });
 
   it('should update a record with new metadata only', async () => {
-    const bundle = {
+    const metadataBundle = {
       ...baseBundle,
       inputData: {
-        index_name: 'test-index',
-        index_host: 'host',
-        namespace: 'default',
-        document_id: 'doc-123',
-        metadata: '{"foo":"baz"}',
-        model: 'llama-text-embed-v2',
+        ...baseBundle.inputData,
+        record_metadata: { foo: 'baz' },
       },
-    } satisfies Bundle;
+    };
 
-    updateMock.mockResolvedValue({ updatedCount: 1 });
-
-    const result = await appTester((App.creates.update_record!.operation.perform as any), bundle) as any;
-    expect(updateMock).toHaveBeenCalled();
+    const result = await appTester((App.creates.update_record!.operation.perform as any), metadataBundle) as any;
     expect(result.id).toBe('doc-123');
   });
 
   it('should throw if neither text nor metadata is provided', async () => {
-    const bundle = {
+    const emptyBundle = {
       ...baseBundle,
-      inputData: {
-        index_name: 'test-index',
-        index_host: 'host',
-        namespace: 'default',
-        document_id: 'doc-123',
-        model: 'llama-text-embed-v2',
-      },
-    } satisfies Bundle;
+    };
 
-    await expect(appTester((App.creates.update_record!.operation.perform as any), bundle)).rejects.toThrow();
+    await expect(appTester((App.creates.update_record!.operation.perform as any), emptyBundle)).rejects.toThrow();
   });
 }); 

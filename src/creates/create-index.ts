@@ -86,7 +86,7 @@ export default {
         type: 'text',
         helpText: 'The field map for the index as a JSON object (e.g., {"text": "myField"}).',
         required: false,
-        default: '{"text": "chunk_text"}',
+        default: '{"text": "text"}',
       },
       {
         key: 'wait_until_ready',

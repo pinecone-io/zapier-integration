@@ -29,7 +29,11 @@ describe('searches.list_records', () => {
         ...baseBundle,
         inputData: {
           index_name: 'test-index',
+          index_host: 'test-index-host',
           namespace: 'default',
+          prefix: 'record',
+          limit: 10,
+          paginationToken: 'next-token',
         },
       } satisfies Bundle;
 
@@ -41,18 +45,35 @@ describe('searches.list_records', () => {
         ],
         usage: { listUnits: 1 },
       };
+      const listPaginatedResponse = {
+        namespace: 'default',
+        records: [
+          { id: 'record1', values: [0.1, 0.2, 0.3] },
+          { id: 'record2', values: [0.4, 0.5, 0.6] },
+        ],
+        pagination: {
+          next: 'next-token',
+        },
+        usage: { listUnits: 1 },
+      };
+
       const listRecordsMock = vi.fn().mockResolvedValue(listRecordsResponse);
+      const listPaginatedMock = vi.fn().mockResolvedValue(listPaginatedResponse);
       __setPineconeMockState({
         inference: { embed: vi.fn(), getModel: vi.fn(), listModels: vi.fn(), rerank: vi.fn() },
         describeIndex: vi.fn(),
         listIndexes: vi.fn(),
-        index: vi.fn().mockReturnValue({ namespace: vi.fn().mockReturnValue({ listRecords: listRecordsMock }) }),
+        index: vi.fn().mockReturnValue({ namespace: vi.fn().mockReturnValue({ listRecords: listRecordsMock, listPaginated: listPaginatedMock }) }),
       });
 
       const result = await appTester((App.searches.list_records!.operation.perform as any), bundle);
 
-      expect(listRecordsMock).toHaveBeenCalledWith('test-index', 'default', expect.objectContaining({}));
-      expect(result).toEqual([listRecordsResponse]);
+      expect(listPaginatedMock).toHaveBeenCalledWith(expect.objectContaining({
+        prefix: 'record',
+        limit: 10,
+        paginationToken: 'next-token',
+      }));
+      expect(result).toEqual([listPaginatedResponse]);
     });
   });
 });

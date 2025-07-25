@@ -27,7 +27,7 @@ describe('creates.delete_record', () => {
         index_name: 'test-index',
         index_host: 'host',
         namespace: 'default',
-        document_id: 'doc-123',
+        record_id: 'doc-123',
       },
     } satisfies Bundle;
 
@@ -47,7 +47,7 @@ describe('creates.delete_record', () => {
         index_name: 'test-index',
         index_host: 'host',
         namespace: 'default',
-        document_id: 'doc-123',
+        record_id: 'doc-123',
       },
     } satisfies Bundle;
 

@@ -14,30 +14,30 @@ const perform = async (z: ZObject, bundle: Bundle) => {
 };
 
 export default {
-  key: 'list_vectors',
-  noun: 'Vector',
+  key: 'list_records',
+  noun: 'Record',
   display: {
-    label: 'Advanced: List Vectors',
-    description: 'For power users: Lists all vectors in a Pinecone index. Not needed for most Zapier workflows.'
+    label: 'Advanced: List Records',
+    description: 'For power users: Lists all records in a Pinecone index. Not needed for most Zapier workflows.'
   },
   operation: {
     perform,
     inputFields: [
       { key: 'index_name', label: 'Index Name', type: 'string', required: true, helpText: 'The name of the Pinecone index.' },
       { key: 'index_host', label: 'Index Host', type: 'string', required: true, helpText: 'The host URL of the Pinecone index.' },
-      { key: 'namespace', label: 'Namespace', type: 'string', required: true, helpText: 'The namespace to list vectors from.' },
-      { key: 'prefix', label: 'Prefix', type: 'string', required: false, helpText: 'Prefix to filter vector IDs.' },
-      { key: 'limit', label: 'Limit', type: 'integer', required: false, helpText: 'Maximum number of vectors to return.' },
+      { key: 'namespace', label: 'Namespace', type: 'string', required: true, helpText: 'The namespace to list records from.' },
+      { key: 'prefix', label: 'Prefix', type: 'string', required: false, helpText: 'Prefix to filter record IDs.' },
+      { key: 'limit', label: 'Limit', type: 'integer', required: false, helpText: 'Maximum number of records to return.' },
       { key: 'paginationToken', label: 'Pagination Token', type: 'string', required: false, helpText: 'Token for fetching the next page of results.' }
     ],
     outputFields: [
-      { key: 'vectors', label: 'Vectors', list: true },
+      { key: 'records', label: 'Records', list: true },
       { key: 'pagination', label: 'Pagination', dict: true },
       { key: 'namespace', label: 'Namespace', type: 'string' },
       { key: 'usage', label: 'Usage', dict: true }
     ],
     sample: {
-      vectors: [
+      records: [
         { id: 'doc1#chunk1' },
         { id: 'doc1#chunk2' },
         { id: 'doc1#chunk3' }

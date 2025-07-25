@@ -2,53 +2,67 @@ import { type Bundle, type Create, type ZObject } from 'zapier-platform-core';
 import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
-  const { document_id, index_name, index_host, namespace, document, metadata, model } = bundle.inputData;
-  if (!document && !metadata) {
-    throw new Error('You must provide at least one of: new document text or new metadata.');
+  const { record_id, index_name, index_host, namespace, record, record_metadata } = bundle.inputData;
+  if (!record && !record_metadata) {
+    throw new Error('You must provide at least one of: new record text or new metadata.');
   }
   const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
-  let meta = undefined;
-  if (metadata && typeof metadata === 'string') {
-    try {
-      meta = JSON.parse(metadata);
-    } catch {
-      meta = { value: metadata };
+  for (const key in record_metadata as Record<string, any>) {
+    const value = record_metadata[key];
+    if (
+      typeof value !== 'string' &&
+      typeof value !== 'number' &&
+      typeof value !== 'boolean' &&
+      !(Array.isArray(value) && value.every(v => typeof v === 'string'))
+    ) {
+      throw new Error(`Invalid type for metadata field '${key}'. Must be a string, number, boolean, or list of strings.`);
     }
-  } else if (metadata && typeof metadata === 'object') {
-    meta = metadata;
   }
-  let model_name = bundle.inputData.model;
-  if (!model_name) {
-    const index_info = await pinecone.describeIndex(index_name as string)
-    if (!index_info?.embed) {
-      throw new Error('No embedding model found for index.');
-    }
-    model_name = index_info.embed.model;
-  } else {
-    model_name = model_name as string;
-  }
-  let values: number[] | undefined = undefined;
-  if (document) {
-    const docText = typeof document === 'string' ? document : String(document);
-    if (!model) {
-      throw new Error('Embedding model is required when updating the document text.');
-    }
-    const embedResponse = await pinecone.inference.embed(model as string, [docText], {});
-    const embedding = embedResponse.data[0];
-    if (embedding && Array.isArray((embedding as any).values)) {
-      values = (embedding as any).values;
-    } else if (embedding && (embedding as any).indices && (embedding as any).values) {
-      values = (embedding as any).values;
+  const updatePayload: any = { 
+    id: String(record_id),
+    metadata: record_metadata as Record<string, any>,
+    sparseValues: {
+      indices: [] as number[],
+      values: [] as number[],
+    },
+    values: [] as number[], 
+  };
+  if (record) {
+    let model_name = undefined;
+    const index_info = await pinecone.describeIndex(index_name as string);
+    if (!model_name) {
+      if (!index_info) {
+        throw new Error('Index not found.');
+      }
+      if (!index_info?.embed) {
+        throw new Error('No embedding model found for index.');
+      }
+      model_name = index_info.embed.model;
     } else {
-      throw new Error('Embedding response did not contain values array.');
+      model_name = model_name as string;
     }
+    const docText = typeof record === 'string' ? record : String(record);
+    const embedResponse = await pinecone.inference.embed(model_name as string, [docText], {
+        input_type: 'passage',
+        truncate: 'END',
+    });
+    const embedding = embedResponse.data[0];
+    if (!embedding) {
+        throw new Error('Failed to retrieve embedding data.');
+    }
+    if (index_info.vectorType === 'dense' && Array.isArray((embedding as any).values)) {
+      updatePayload.values = (embedding as any).values;
+    } else if (index_info.vectorType === 'sparse' && Array.isArray((embedding as any).sparseValues)) {
+      updatePayload.sparseValues.indices = (embedding as any).sparseIndices;
+      updatePayload.sparseValues.values = (embedding as any).sparseValues;
+    } else {
+      throw new Error('Embedding response did not contain values array. Embedding is.')
+    }
+    updatePayload.metadata.text = docText;
   }
   const ns = pinecone.index(index_name as string, index_host as string).namespace(namespace as string);
-  const updatePayload: any = { id: String(document_id) };
-  if (typeof values !== 'undefined') updatePayload.values = values;
-  if (typeof meta !== 'undefined') updatePayload.metadata = meta;
   await ns.update(updatePayload);
-  return { id: String(document_id), status: 'updated', index: index_name, namespace };
+  return { id: String(record_id), message: 'Record updated successfully.' };
 };
 
 export default {
@@ -63,23 +77,18 @@ export default {
     inputFields: [
       { key: 'record_id', label: 'Record ID', type: 'string', required: true, helpText: 'The ID of the record to update. This is the ID returned by Add Record or the one you provided.' },
       { key: 'record', label: 'New Record Text', type: 'text', required: false, helpText: 'Optional. Provide new text to update the record. If provided, new embeddings will be generated.' },
-      { key: 'model', label: 'Embedding Model', type: 'string', required: false, helpText: 'Required if updating the document text. Only required if the index was created with a different model than the default. If not provided, the model used for the index will be used.' },
-      { key: 'metadata', label: 'New Metadata', type: 'text', required: false, helpText: 'Optional. Provide new metadata as a JSON object or string.' },
+      { key: 'record_metadata', label: 'New Metadata', required: false, helpText: 'Optional. Provide new metadata as a JSON object or string.', dict: true },
       { key: 'index_name', label: 'Index Name', type: 'string', required: true, helpText: 'The name of the Pinecone index.' },
-      { key: 'index_host', label: 'Index Host', type: 'string', required: true, helpText: 'The host URL of the Pinecone index.' },
+      { key: 'index_host', label: 'Index Host', type: 'string', required: false, helpText: 'The host URL of the Pinecone index.' },
       { key: 'namespace', label: 'Namespace', type: 'string', required: true, helpText: 'The namespace containing the record.' },
     ],
     outputFields: [
       { key: 'id', label: 'Vector ID', type: 'string' },
-      { key: 'status', label: 'Status', type: 'string' },
-      { key: 'index', label: 'Index', type: 'string' },
-      { key: 'namespace', label: 'Namespace', type: 'string' },
+      { key: 'message', label: 'Message', type: 'string' },
     ],
     sample: {
       id: 'uuid',
-      status: 'updated',
-      index: 'example-index',
-      namespace: 'default',
+      message: 'Record updated successfully.',
     }
   }
-} satisfies Create; 
+} satisfies Create;

@@ -23,9 +23,9 @@ describe('creates.add_record', () => {
         index_name: 'test-index',
         index_host: 'host',
         namespace: 'default',
-        chunk_text: 'Hello world',
-        document_id: 'doc-123',
-        document_metadata: { foo: 'bar' }
+        record: 'Hello world',
+        record_id: 'doc-123', // Updated to record_id
+        record_metadata: { foo: 'bar' } // Updated to record_metadata
       },
       authData: {
         api_key: 'test_api_key_123',
@@ -47,8 +47,8 @@ describe('creates.add_record', () => {
         index_name: 'test-index',
         index_host: 'host',
         namespace: 'default',
-        chunk_text: 'Hello world',
-        document_metadata: { foo: 'bar' }
+        record: 'Hello world',
+        record_metadata: { foo: 'bar' } // Updated to record_metadata
       },
       authData: {
         api_key: 'test_api_key_123',
