@@ -2,10 +2,11 @@ import { type Bundle, type Search, type ZObject } from 'zapier-platform-core';
 import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
-  const { index_name, namespace, query_text, top_k, fields } = bundle.inputData;
+  const { index_name, namespace, query_text, top_k, fields, rerank_model } = bundle.inputData;
   const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
   const index = pinecone.index(index_name as string);
   const ns = index.namespace(namespace as string);
+  const rerankModel = rerank_model as string || 'pinecone-rerank-v0';
 
   const searchResponse = await ns.searchRecords({
     query: {
@@ -13,6 +14,10 @@ const perform = async (z: ZObject, bundle: Bundle) => {
       topK: top_k as number,
     },
     fields: fields as string[],
+    rerank: {
+      model: rerankModel,
+      rankFields: fields as string[],
+    },
   });
 
   return searchResponse.result.hits.map((hit: any) => ({
@@ -37,6 +42,14 @@ export default {
       { key: 'query_text', label: 'Query Text', type: 'string', required: true, helpText: 'The text to search for.' },
       { key: 'top_k', label: 'Top K', type: 'integer', required: true, helpText: 'The number of top results to return.' },
       { key: 'fields', label: 'Fields', type: 'string', required: true, helpText: 'The fields to return. This can be retrieved with the Describe Index operation, under embed.field_map.' },
+      { key: 'rerank', label: 'Rerank', type: 'string', required: false, helpText: 'The rerank model to use. By default the Pinecone rerank model is used.', 
+            choices: [
+                { value: 'pinecone-rerank-v0', label: 'Pinecone Rerank v0', sample: 'pinecone-rerank-v0' },
+                { value: 'bge-rerank-v2', label: 'BGE Rerank v2', sample: 'bge-rerank-v2' },
+                { value: 'cohere-rerank-3.5', label: 'Cohere Rerank 3.5', sample: 'cohere-rerank-3.5' },
+            ],
+            default: 'pinecone-rerank-v0'
+       },
     ],
     outputFields: [
       { key: 'id', label: 'Record ID', type: 'string' },
