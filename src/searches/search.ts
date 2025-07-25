@@ -2,7 +2,7 @@ import { type Bundle, type Search, type ZObject } from 'zapier-platform-core';
 import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
-  const { index_name, namespace, query_text, top_k, fields, rerank_model } = bundle.inputData;
+  const { index_name, namespace, query_text, top_k, rerank_model } = bundle.inputData;
   const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
   const index = pinecone.index(index_name as string);
   const ns = index.namespace(namespace as string);
@@ -13,10 +13,9 @@ const perform = async (z: ZObject, bundle: Bundle) => {
       inputs: { text: query_text as string },
       topK: top_k as number,
     },
-    fields: fields as string[],
     rerank: {
       model: rerankModel,
-      rankFields: fields as string[],
+      rankFields: [bundle.inputData.rank_field || 'text'],
     },
   });
 
@@ -41,7 +40,6 @@ export default {
       { key: 'namespace', label: 'Namespace', type: 'string', required: true, helpText: 'The namespace to search within.' },
       { key: 'query_text', label: 'Query Text', type: 'string', required: true, helpText: 'The text to search for.' },
       { key: 'top_k', label: 'Top K', type: 'integer', required: true, helpText: 'The number of top results to return.' },
-      { key: 'fields', label: 'Fields', type: 'string', required: true, helpText: 'The fields to return. This can be retrieved with the Describe Index operation, under embed.field_map.' },
       { key: 'rerank', label: 'Rerank', type: 'string', required: false, helpText: 'The rerank model to use. By default the Pinecone rerank model is used.', 
             choices: [
                 { value: 'pinecone-rerank-v0', label: 'Pinecone Rerank v0', sample: 'pinecone-rerank-v0' },

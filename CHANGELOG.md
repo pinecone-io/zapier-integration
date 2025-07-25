@@ -1,3 +1,9 @@
+## 1.0.2
+
+- Added support for creating, updating, and deleting records using Pinecone integrated inference
+- Added support for creating and deleting indexes with Pinecone integrated inference
+- Simplified the search function to take text and handle reranking behind the scenes
+
 ## 1.0.1
 
 - Enable custom actions.
