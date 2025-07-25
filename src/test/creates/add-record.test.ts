@@ -6,7 +6,7 @@ import App from '../../index';
 
 const appTester = zapier.createAppTester(App);
 
-describe('creates.add_document', () => {
+describe('creates.add_record', () => {
   let upsertRecordsMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -17,7 +17,7 @@ describe('creates.add_document', () => {
     Pinecone.prototype.index = indexMock;
   });
 
-  it('should add a document with a provided document ID', async () => {
+  it('should add a record with a provided record ID', async () => {
     const bundle = {
       inputData: {
         index_name: 'test-index',
@@ -36,12 +36,12 @@ describe('creates.add_document', () => {
 
     upsertRecordsMock.mockResolvedValue({ upsertedCount: 1 });
 
-    const result = await appTester((App.creates.add_document!.operation.perform as any), bundle) as any;
+    const result = await appTester((App.creates.add_record!.operation.perform as any), bundle) as any;
     expect(upsertRecordsMock).toHaveBeenCalled();
     expect(result.id).toBe('doc-123');
   });
 
-  it('should add a document and generate a document ID if not provided', async () => {
+  it('should add a record and generate a record ID if not provided', async () => {
     const bundle = {
       inputData: {
         index_name: 'test-index',
@@ -59,7 +59,7 @@ describe('creates.add_document', () => {
 
     upsertRecordsMock.mockResolvedValue({ upsertedCount: 1 });
 
-    const result = await appTester((App.creates.add_document!.operation.perform as any), bundle) as any;
+    const result = await appTester((App.creates.add_record!.operation.perform as any), bundle) as any;
     expect(upsertRecordsMock).toHaveBeenCalled();
     expect(result.id).toBeDefined();
   });

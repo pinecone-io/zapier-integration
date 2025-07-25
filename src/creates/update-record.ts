@@ -52,22 +52,22 @@ const perform = async (z: ZObject, bundle: Bundle) => {
 };
 
 export default {
-  key: 'update_document',
-  noun: 'Document',
+  key: 'update_record',
+  noun: 'Record',
   display: {
-    label: 'Update Document',
-    description: 'Updates the text and/or metadata for a document in Pinecone.'
+    label: 'Update Record',
+    description: 'Updates the text and/or metadata for a record in Pinecone.'
   },
   operation: {
     perform,
     inputFields: [
-      { key: 'document_id', label: 'Document ID', type: 'string', required: true, helpText: 'The ID of the document to update. This is the ID returned by Add Document or the one you provided.' },
-      { key: 'document', label: 'New Document Text', type: 'text', required: false, helpText: 'Optional. Provide new text to update the document. If provided, new embeddings will be generated.' },
+      { key: 'record_id', label: 'Record ID', type: 'string', required: true, helpText: 'The ID of the record to update. This is the ID returned by Add Record or the one you provided.' },
+      { key: 'record', label: 'New Record Text', type: 'text', required: false, helpText: 'Optional. Provide new text to update the record. If provided, new embeddings will be generated.' },
       { key: 'model', label: 'Embedding Model', type: 'string', required: false, helpText: 'Required if updating the document text. Only required if the index was created with a different model than the default. If not provided, the model used for the index will be used.' },
       { key: 'metadata', label: 'New Metadata', type: 'text', required: false, helpText: 'Optional. Provide new metadata as a JSON object or string.' },
       { key: 'index_name', label: 'Index Name', type: 'string', required: true, helpText: 'The name of the Pinecone index.' },
       { key: 'index_host', label: 'Index Host', type: 'string', required: true, helpText: 'The host URL of the Pinecone index.' },
-      { key: 'namespace', label: 'Namespace', type: 'string', required: true, helpText: 'The namespace containing the document.' },
+      { key: 'namespace', label: 'Namespace', type: 'string', required: true, helpText: 'The namespace containing the record.' },
     ],
     outputFields: [
       { key: 'id', label: 'Vector ID', type: 'string' },
