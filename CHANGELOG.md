@@ -1,3 +1,7 @@
+## 1.0.3
+
+- Fixes to test files for search and update-record
+
 ## 1.0.2
 
 - Added support for creating, updating, and deleting records using Pinecone integrated inference
