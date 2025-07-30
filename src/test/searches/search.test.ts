@@ -32,8 +32,8 @@ describe('searches.search_records', () => {
           namespace: 'default',
           query_text: 'example query',
           top_k: 5,
-          fields: ['category', 'chunk_text'],
           rerank_model: 'pinecone-rerank-v0',
+          rank_field: 'text',
         },
       } satisfies Bundle;
 
@@ -44,8 +44,7 @@ describe('searches.search_records', () => {
               _id: 'rec1',
               _score: 0.95,
               fields: {
-                category: 'example-category',
-                chunk_text: 'Example text',
+                text: 'Example text',
               },
             },
           ],
@@ -56,29 +55,31 @@ describe('searches.search_records', () => {
         inference: { embed: vi.fn(), getModel: vi.fn(), listModels: vi.fn(), rerank: vi.fn() },
         describeIndex: vi.fn(),
         listIndexes: vi.fn(),
-        index: vi.fn().mockReturnValue({ namespace: vi.fn().mockReturnValue({ searchRecords: searchMock }) }),
+        index: vi.fn().mockReturnValue({
+          namespace: vi.fn().mockReturnValue({
+            searchRecords: searchMock,
+          }),
+        }),
       });
 
       const result = await appTester((App.searches.search_records!.operation.perform as any), bundle);
 
-      expect(searchMock).toHaveBeenCalledWith(expect.objectContaining({
-        query: expect.objectContaining({
+      expect(searchMock).toHaveBeenCalledWith({
+        query: {
           inputs: { text: 'example query' },
           topK: 5,
-        }),
-        fields: ['category', 'chunk_text'],
-        rerank: expect.objectContaining({
+        },
+        rerank: {
           model: 'pinecone-rerank-v0',
-          rankFields: ['category', 'chunk_text'],
-        }),
-      }));
+          rankFields: ['text'],
+        },
+      });
       expect(result).toEqual([
         {
           id: 'rec1',
           score: 0.95,
           fields: {
-            category: 'example-category',
-            chunk_text: 'Example text',
+            text: 'Example text',
           },
         },
       ]);
