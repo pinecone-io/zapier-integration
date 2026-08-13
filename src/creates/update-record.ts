@@ -20,7 +20,7 @@ const perform = async (z: ZObject, bundle: Bundle) => {
   }
   const updatePayload: any = { 
     id: String(record_id),
-    metadata: record_metadata as Record<string, any>,
+    metadata: (record_metadata as Record<string, any>) || {},
     sparseValues: {
       indices: [] as number[],
       values: [] as number[],
