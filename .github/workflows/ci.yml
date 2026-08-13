@@ -38,32 +38,5 @@ jobs:
       - name: Build (tsc)
         run: npm run build
 
-      # Runs the full suite EXCEPT src/test/searches/search.test.ts, which fails
-      # due to a pre-existing source/test contract drift (see the non-blocking
-      # "full-test-suite" job below and the PR description). All other 27 tests
-      # must pass for the gate to go green.
-      - name: Test (runnable suite)
-        run: npx vitest run --exclude '**/node_modules/**' --exclude '**/searches/search.test.ts'
-
-  # Informational only: runs the COMPLETE test suite, including the known-failing
-  # search.test.ts. Non-blocking so the drift stays visible without gating merges.
-  full-test-suite:
-    name: Full test suite (informational)
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '22.x'
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build (tsc)
-        run: npm run build
-
-      - name: Test (full suite)
-        run: npm test -- --run
+      - name: Test
+        run: npx vitest run
