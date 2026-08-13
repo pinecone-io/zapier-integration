@@ -12,14 +12,18 @@
   },
   "dependencies": {
     "@pinecone-database/pinecone": "^6.1.1",
-    "zapier-platform-core": "17.4.0"
+    "zapier-platform-core": "17.9.1"
   },
   "devDependencies": {
     "@types/node-fetch": "^2.6.12",
     "nock": "^14.0.5",
     "rimraf": "^5.0.10",
     "typescript": "5.6.2",
-    "vitest": "^2.1.2"
+    "vitest": "^3.2.6"
+  },
+  "overrides": {
+    "form-data": "^4.0.6",
+    "lodash": "^4.18.1"
   },
   "private": true
 }
