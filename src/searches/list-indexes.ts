@@ -15,7 +15,7 @@ const toSnakeCase = (obj: any): any => {
 };
 
 const perform = async (z: ZObject, bundle: Bundle) => {
-  const pinecone = new Pinecone();
+  const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
   const response = await pinecone.listIndexes();
   const { name } = bundle.inputData;
   let indexes = response.indexes.map(toSnakeCase);

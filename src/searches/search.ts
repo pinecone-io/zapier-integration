@@ -2,20 +2,22 @@ import { type Bundle, type Search, type ZObject } from 'zapier-platform-core';
 import { Pinecone } from '@pinecone-database/pinecone';
 
 const perform = async (z: ZObject, bundle: Bundle) => {
-  const { index_name, namespace, query_text, top_k, rerank_model } = bundle.inputData;
+  const { index_name, namespace, query_text, top_k, rerank_model, fields } = bundle.inputData;
   const pinecone = new Pinecone({ apiKey: bundle.authData.api_key, sourceTag: 'zapier' });
   const index = pinecone.index(index_name as string);
   const ns = index.namespace(namespace as string);
   const rerankModel = rerank_model as string || 'pinecone-rerank-v0';
+  const returnFields = fields as string[] | undefined;
 
   const searchResponse = await ns.searchRecords({
     query: {
       inputs: { text: query_text as string },
       topK: top_k as number,
     },
+    ...(returnFields ? { fields: returnFields } : {}),
     rerank: {
       model: rerankModel,
-      rankFields: [bundle.inputData.rank_field || 'text'],
+      rankFields: returnFields ?? [(bundle.inputData.rank_field as string) || 'text'],
     },
   });
 
