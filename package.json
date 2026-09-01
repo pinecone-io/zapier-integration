@@ -11,7 +11,7 @@
     "bootstrap": "lerna bootstrap --scope=$npm_package_name"
   },
   "dependencies": {
-    "@pinecone-database/pinecone": "^6.1.1",
+    "@pinecone-database/pinecone": "^8.2.0",
     "zapier-platform-core": "17.9.1"
   },
   "devDependencies": {
